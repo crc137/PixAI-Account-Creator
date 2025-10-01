@@ -11,12 +11,14 @@ from src.ui.ui_enhancer import ui_enhancer
 from src.core.version import get_version
 from src.core import config as cfg
 
-GREEN = getattr(cfg, "GREEN", '\033[0;32m')
-RED = getattr(cfg, "RED", '\033[0;31m')
-BLUE = getattr(cfg, "BLUE", '\033[0;34m')
-YELLOW = getattr(cfg, "YELLOW", '\033[0;33m')
-CYAN = getattr(cfg, "CYAN", '\033[0;36m')
-NC = getattr(cfg, "NC", '\033[0m')
+GREEN = cfg.GREEN
+RED = cfg.RED
+BLUE = cfg.BLUE
+YELLOW = cfg.YELLOW
+CYAN = cfg.CYAN
+NC = cfg.NC
+cprint = cfg.cprint
+cprint_auto = cfg.cprint_auto
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Preview browser with UI enhancements")
@@ -29,11 +31,11 @@ async def preview_browser():
     headless = str(args.headless).strip().lower() in ("1", "true", "yes", "on")
     
     version = get_version()
-    print(f"{GREEN}[+] {cfg.TITLE} {version}{NC}")
-    print(f"{GREEN}[+] Starting browser preview...{NC}")
-    print(f"{GREEN}[+] URL: {args.url}{NC}")
-    print(f"{GREEN}[+] Headless: {headless}{NC}")
-    print(f"{GREEN}[+] Press Ctrl+C to close{NC}")
+    cprint_auto(f"[+] {cfg.TITLE} {version}")
+    cprint_auto(f"[+] Starting browser preview...")
+    cprint_auto(f"[+] URL: {args.url}")
+    cprint_auto(f"[+] Headless: {headless}")
+    cprint_auto(f"[+] Press Ctrl+C to close")
     
     async with async_playwright() as pw:
         browser = await pw.chromium.launch(
@@ -45,27 +47,27 @@ async def preview_browser():
         page = await context.new_page()
         
         try:
-            print(f"{GREEN}[+] Navigating to {args.url}...{NC}")
+            cprint_auto(f"[+] Navigating to {args.url}...")
             await page.goto(args.url, timeout=30000)
             
-            print(f"{GREEN}[+] Applying UI enhancements...{NC}")
+            cprint_auto(f"[+] Applying UI enhancements...")
             await ui_enhancer.enhance_page(page)
             
-            print(f"{GREEN}[+] Browser ready! You can now see the enhanced interface.{NC}")
-            print(f"{GREEN}[+] Press Ctrl+C to close the browser.{NC}")
+            cprint_auto(f"[+] Browser ready! You can now see the enhanced interface.")
+            cprint_auto(f"[+] Press Ctrl+C to close the browser.")
             
             try:
                 while True:
                     await asyncio.sleep(1)
             except KeyboardInterrupt:
-                print(f"\n{GREEN}[+] Closing browser...{NC}")
+                cprint_auto(f"\n[+] Closing browser...")
                 
         except Exception as e:
-            print(f"{RED}[-] Error: {e}{NC}")
+            cprint_auto(f"[-] Error: {e}")
         finally:
             await context.close()
             await browser.close()
-            print(f"{GREEN}[+] Browser closed.{NC}")
+            cprint_auto(f"[+] Browser closed.")
 
 if __name__ == "__main__":
     try:

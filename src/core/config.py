@@ -78,6 +78,33 @@ CYAN = '\033[0;36m'
 NC = '\033[0m'
 
 # =============================================================================
+# COLORED PRINT FUNCTIONS
+# =============================================================================
+
+def cprint(msg, color=NC, end='\n'):
+    """Print colored text to console"""
+    print(f"{color}{msg}{NC}", end=end)
+
+def cprint_auto(msg: str, end: str = '\n') -> None:
+    """Automatically determine color based on message prefix"""
+    color = NC
+    try:
+        if isinstance(msg, str):
+            if msg.startswith("[+]"):
+                color = GREEN
+            elif msg.startswith("[-]"):
+                color = RED
+            elif msg.startswith("[>]"):
+                color = BLUE
+            elif msg.startswith("[!]"):
+                color = YELLOW
+            elif msg.startswith("[?]") or msg.startswith("[DEBUG]"):
+                color = CYAN
+    except Exception:
+        color = NC
+    print(f"{color}{msg}{NC}", end=end)
+
+# =============================================================================
 # VERSION INFORMATION
 # =============================================================================
 

@@ -6,12 +6,14 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from src.core import config as cfg
 
-GREEN = getattr(cfg, "GREEN", '\033[0;32m')
-RED = getattr(cfg, "RED", '\033[0;31m')
-BLUE = getattr(cfg, "BLUE", '\033[0;34m')
-YELLOW = getattr(cfg, "YELLOW", '\033[0;33m')
-CYAN = getattr(cfg, "CYAN", '\033[0;36m')
-NC = getattr(cfg, "NC", '\033[0m')
+GREEN = cfg.GREEN
+RED = cfg.RED
+BLUE = cfg.BLUE
+YELLOW = cfg.YELLOW
+CYAN = cfg.CYAN
+NC = cfg.NC
+cprint = cfg.cprint
+cprint_auto = cfg.cprint_auto
 
 __version__ = cfg.VERSION
 __version_info__ = (cfg.VERSION_MAJOR, cfg.VERSION_MINOR, cfg.VERSION_PATCH)
@@ -38,6 +40,6 @@ def get_build_info():
     }
 
 if __name__ == "__main__":
-    print(f"{GREEN}[+] {cfg.TITLE} {cfg.VERSION_STRING}{NC}")
-    print(f"{GREEN}[+] Build Date: {cfg.BUILD_DATE}{NC}")
-    print(f"{GREEN}[+] Release: {cfg.RELEASE_NAME}{NC}")
+    cprint_auto(f"[+] {cfg.TITLE} {cfg.VERSION_STRING}")
+    cprint_auto(f"[+] Build Date: {cfg.BUILD_DATE}")
+    cprint_auto(f"[+] Release: {cfg.RELEASE_NAME}")

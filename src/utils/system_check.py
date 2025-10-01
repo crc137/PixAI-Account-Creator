@@ -13,21 +13,21 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from src.core import config as cfg
 
-GREEN = getattr(cfg, "GREEN", '\033[0;32m')
-RED = getattr(cfg, "RED", '\033[0;31m')
-BLUE = getattr(cfg, "BLUE", '\033[0;34m')
-YELLOW = getattr(cfg, "YELLOW", '\033[0;33m')
-CYAN = getattr(cfg, "CYAN", '\033[0;36m')
-NC = getattr(cfg, "NC", '\033[0m')
+# Import color constants and functions from config
+GREEN = cfg.GREEN
+RED = cfg.RED
+BLUE = cfg.BLUE
+YELLOW = cfg.YELLOW
+CYAN = cfg.CYAN
+NC = cfg.NC
+cprint = cfg.cprint
+cprint_auto = cfg.cprint_auto
 
 try:
     import GPUtil
     GPU_AVAILABLE = True
 except ImportError:
     GPU_AVAILABLE = False
-
-def cprint(msg, color=NC, end='\n'):
-    print(f"{color}{msg}{NC}", end=end)
 
 def get_system_info():
     cprint("=" * 60, CYAN)

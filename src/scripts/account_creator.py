@@ -20,30 +20,14 @@ from src.core import config as cfg
 from src.ui.ui_enhancer import ui_enhancer
 from src.core.version import get_version
 
-GREEN = getattr(cfg, "GREEN", '\033[0;32m')
-RED = getattr(cfg, "RED", '\033[0;31m')
-BLUE = getattr(cfg, "BLUE", '\033[0;34m')
-YELLOW = getattr(cfg, "YELLOW", '\033[0;33m')
-CYAN = getattr(cfg, "CYAN", '\033[0;36m')
-NC = getattr(cfg, "NC", '\033[0m')
-
-def cprint_auto(msg: str, end: str = '\n') -> None:
-    color = NC
-    try:
-        if isinstance(msg, str):
-            if msg.startswith("[+]"):
-                color = GREEN
-            elif msg.startswith("[-]"):
-                color = RED
-            elif msg.startswith("[>]"):
-                color = BLUE
-            elif msg.startswith("[!]"):
-                color = YELLOW
-            elif msg.startswith("[?]") or msg.startswith("[DEBUG]"):
-                color = CYAN
-    except Exception:
-        color = NC
-    print(f"{color}{msg}{NC}", end=end)
+GREEN = cfg.GREEN
+RED = cfg.RED
+BLUE = cfg.BLUE
+YELLOW = cfg.YELLOW
+CYAN = cfg.CYAN
+NC = cfg.NC
+cprint = cfg.cprint
+cprint_auto = cfg.cprint_auto
 
 API_URL = getattr(cfg, "API_URL", "https://pixai.coonlink.com/api/v1/boostlikes/accountcreator-add")
 HEADLESS = getattr(cfg, "HEADLESS", True)
