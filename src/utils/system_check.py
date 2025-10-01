@@ -13,6 +13,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from src.core import config as cfg
 
+# Import color constants and functions from config
 GREEN = cfg.GREEN
 RED = cfg.RED
 BLUE = cfg.BLUE
@@ -192,6 +193,7 @@ def parse_args():
 def main():
     args = parse_args()
     
+    # Pre-calculate GPU info to avoid double calls
     gpus_info = []
     if GPU_AVAILABLE:
         try:

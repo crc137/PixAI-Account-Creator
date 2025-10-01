@@ -163,7 +163,15 @@ async def create_account_once_async(pw, context, page, email: str, password: str
                 else:
                     await page.locator("form").first.evaluate("form => form.submit()")
 
-                cprint_auto("[+] Submitted registration. Waiting for response...")
+                cprint_auto("[+] Submitted registration. Monitoring login button for successful authentication...")
+                
+                login_success = await monitor_login_button_changes(page, timeout=30000)
+                
+                if login_success:
+                    cprint_auto("[+] Login button monitoring indicates successful authentication!")
+                else:
+                    cprint_auto("[-] Login button monitoring did not detect successful authentication")
+                
                 await page.wait_for_timeout(2000)
                 
                 try:
@@ -196,13 +204,22 @@ async def create_account_once_async(pw, context, page, email: str, password: str
                 
                 cprint_auto("[+] Waiting for account creation confirmation...")
                 
+                if login_success:
+                    cprint_auto("[+] Account creation confirmed by successful login monitoring!")
+                    return True, False
+                
                 try:
                     await page.wait_for_selector("button:has-text('Generate')", timeout=5000)
-                    cprint_auto("[+] Account creation confirmed!")
+                    cprint_auto("[+] Account creation confirmed by Generate button!")
                     return True, False
                 except Exception:
-                    print("[-] Account creation failed - no Generate button found")
-                    return False, False
+                    current_url = page.url
+                    if "/artworks" in current_url or "/@" in current_url:
+                        cprint_auto("[+] Account creation confirmed by profile page navigation!")
+                        return True, False
+                    else:
+                        print("[-] Account creation failed - no confirmation found")
+                        return False, False
                     
             except Exception as e:
                 print(f"[-] Account creation attempt {attempt + 1} failed: {e}")
@@ -217,6 +234,91 @@ async def create_account_once_async(pw, context, page, email: str, password: str
     except Exception as e:
         print(f"[-] Create account failed: {e}")
         return False, False
+
+async def monitor_login_button_changes(page, timeout: int = 30000) -> bool:
+    try:
+        cprint_auto("[+] Monitoring login button for changes...")
+        
+        login_button_selector = "button[type='submit']:has-text('Login')"
+        
+        try:
+            await page.wait_for_selector(login_button_selector, timeout=10000)
+            cprint_auto("[+] Login button found, monitoring for changes...")
+        except Exception:
+            cprint_auto("[-] Login button not found, checking if already logged in...")
+            if await page.locator("button[aria-haspopup='true']").count() > 0:
+                cprint_auto("[+] Already logged in (profile menu found)")
+                return True
+            return False
+        
+        start_time = time.time()
+        
+        while time.time() - start_time < timeout:
+            try:
+                button_element = await page.locator(login_button_selector).first
+                
+                if await button_element.count() == 0:
+                    cprint_auto("[+] Login button disappeared - successful login!")
+                    return True
+                
+                is_disabled = await button_element.get_attribute("disabled")
+                is_invisible = await button_element.locator("span:has-text('Login')").get_attribute("class")
+                spinner_visible = await button_element.locator("svg.animate-spin").get_attribute("class")
+                
+                if is_disabled and "invisible" in (is_invisible or ""):
+                    cprint_auto("[+] Login button is in loading state (disabled + invisible text + spinner)")
+                    await page.wait_for_timeout(1000)
+                    continue
+                
+                if not is_disabled and "invisible" not in (is_invisible or ""):
+                    if spinner_visible and "hidden" in spinner_visible:
+                        cprint_auto("[+] Login button returned to normal state - checking if login was successful...")
+                        await page.wait_for_timeout(2000)
+                        
+                        if await button_element.count() == 0:
+                            cprint_auto("[+] Login button disappeared after state change - successful login!")
+                            return True
+                        
+                        if await page.locator("button[aria-haspopup='true']").count() > 0:
+                            cprint_auto("[+] Profile menu found - successful login!")
+                            return True
+                        
+                        if await page.locator("text=Generate").count() > 0:
+                            cprint_auto("[+] Generate button found - successful login!")
+                            return True
+                        
+                        if await page.locator("a[href*='/artworks']").count() > 0:
+                            cprint_auto("[+] Artworks link found - successful login!")
+                            return True
+                
+                await page.wait_for_timeout(500)
+                
+            except Exception as e:
+                cprint_auto(f"[-] Error monitoring button: {e}")
+                await page.wait_for_timeout(1000)
+        
+        cprint_auto("[-] Login button monitoring timeout")
+        
+        try:
+            if await page.locator("button[aria-haspopup='true']").count() > 0:
+                cprint_auto("[+] Final check: Profile menu found - successful login!")
+                return True
+            
+            if await page.locator("text=Generate").count() > 0:
+                cprint_auto("[+] Final check: Generate button found - successful login!")
+                return True
+                
+            if await page.locator("a[href*='/artworks']").count() > 0:
+                cprint_auto("[+] Final check: Artworks link found - successful login!")
+                return True
+        except Exception as e:
+            cprint_auto(f"[-] Error in final check: {e}")
+        
+        return False
+        
+    except Exception as e:
+        cprint_auto(f"[-] Error in button monitoring: {e}")
+        return False
 
 async def logout_if_possible_async(page) -> None:
     try:
@@ -258,18 +360,33 @@ async def create_accounts_multi_browser_async(accounts_count: int, browsers_coun
             proxies_cycle: List[str] = []
             if proxy:
                 proxies_cycle = [proxy]
-            elif proxies_list:
-                proxies_cycle = proxies_list[:]
+                cprint_auto(f"[DEBUG] Browser {browser_index + 1}: Using single proxy: {proxy}")
+            elif PROXIES:
+                proxies_cycle = PROXIES[:]
+                cprint_auto(f"[DEBUG] Browser {browser_index + 1}: Using {len(proxies_cycle)} proxies from global list")
 
             current_proxy_index = 0
 
             async def launch_with_proxy(proxy_url: Optional[str]):
                 launch_kwargs = {"headless": headless, "args": BROWSER_ARGS}
-                if proxy_url:
-                    launch_kwargs["proxy"] = {"server": proxy_url}
-                    cprint_auto(f"[>] Browser {browser_index + 1}: Using proxy {proxy_url}")
                 br = await pw.chromium.launch(**launch_kwargs)
-                ctx = await br.new_context()
+                
+                context_kwargs = {}
+                if proxy_url:
+                    parts = proxy_url.split(':')
+                    if len(parts) == 4:
+                        host, port, user, password = parts
+                        context_kwargs["proxy"] = {
+                            "server": f"http://{host}:{port}",
+                            "username": user,
+                            "password": password
+                        }
+                        cprint_auto(f"[>] Browser {browser_index + 1}: Using proxy {host}:{port} with auth")
+                    else:
+                        context_kwargs["proxy"] = {"server": f"http://{proxy_url}"}
+                        cprint_auto(f"[>] Browser {browser_index + 1}: Using proxy {proxy_url}")
+                
+                ctx = await br.new_context(**context_kwargs)
                 pg = await ctx.new_page()
                 return br, ctx, pg
 
@@ -282,7 +399,9 @@ async def create_accounts_multi_browser_async(accounts_count: int, browsers_coun
                     email = generate_email(EMAIL_DOMAIN)
                     password = generate_password()
                     
-                    cprint_auto(f"[+] Browser {browser_index + 1}: Creating account {i+1}/{accounts_to_create}: {email}")
+                    current_proxy = proxies_cycle[current_proxy_index] if proxies_cycle else None
+                    proxy_info = f" (proxy {current_proxy_index + 1}/{len(proxies_cycle)})" if proxies_cycle else ""
+                    cprint_auto(f"[+] Browser {browser_index + 1}: Creating account {i+1}/{accounts_to_create}: {email}{proxy_info}")
                     
                     try:
                         success, rate_limited = await create_account_once_async(pw, context, page, email, password)
@@ -292,7 +411,11 @@ async def create_accounts_multi_browser_async(accounts_count: int, browsers_coun
                                 created_accounts.append({"email": email, "password": password})
                                 cprint_auto(f"[+] Browser {browser_index + 1}: Account {email} created and sent to API")
                                 
-                                await logout_if_possible_async(page)
+                                try:
+                                    await logout_if_possible_async(page)
+                                except Exception:
+                                    cprint_auto(f"[!] Browser {browser_index + 1}: Logout failed, continuing...")
+                                
                                 i += 1
                             else:
                                 cprint_auto(f"[-] Browser {browser_index + 1}: Failed to send {email} to API")
@@ -306,15 +429,37 @@ async def create_accounts_multi_browser_async(accounts_count: int, browsers_coun
                             except Exception:
                                 pass
                             if proxies_cycle:
-                                current_proxy_index = (current_proxy_index + 1) % len(proxies_cycle)
-                                current_proxy = proxies_cycle[current_proxy_index]
+                                cprint_auto(f"[DEBUG] Browser {browser_index + 1}: Available proxies: {len(proxies_cycle)}")
+                                if len(proxies_cycle) > 1:
+                                    current_proxy_index = (current_proxy_index + 1) % len(proxies_cycle)
+                                    current_proxy = proxies_cycle[current_proxy_index]
+                                    cprint_auto(f"[>] Browser {browser_index + 1}: Switched to proxy {current_proxy.split(':')[0]}:{current_proxy.split(':')[1]} (proxy {current_proxy_index + 1}/{len(proxies_cycle)})")
+                                else:
+                                    current_proxy = proxies_cycle[0]
+                                    cprint_auto(f"[>] Browser {browser_index + 1}: Only one proxy available, using with delay")
                             else:
                                 current_proxy = None
+                                cprint_auto(f"[>] Browser {browser_index + 1}: No proxy available, using direct connection")
                             browser, context, page = await launch_with_proxy(current_proxy)
-                            await asyncio.sleep(3)
+                            if len(proxies_cycle) == 1:
+                                await asyncio.sleep(10)  
+                            else:
+                                await asyncio.sleep(5)
                             continue
                         else:
                             cprint_auto(f"[-] Browser {browser_index + 1}: Failed to create {email}")
+                            if proxies_cycle and len(proxies_cycle) > 1:
+                                cprint_auto(f"[!] Rotating proxy after failed account creation...")
+                                try:
+                                    await context.close()
+                                    await browser.close()
+                                except Exception:
+                                    pass
+                                current_proxy_index = (current_proxy_index + 1) % len(proxies_cycle)
+                                current_proxy = proxies_cycle[current_proxy_index]
+                                cprint_auto(f"[>] Browser {browser_index + 1}: Switched to proxy {current_proxy.split(':')[0]}:{current_proxy.split(':')[1]} (proxy {current_proxy_index + 1}/{len(proxies_cycle)})")
+                                browser, context, page = await launch_with_proxy(current_proxy)
+                                await asyncio.sleep(2)
                             failed_accounts.append({"email": email, "password": password})
                             i += 1
                             
@@ -326,22 +471,18 @@ async def create_accounts_multi_browser_async(accounts_count: int, browsers_coun
                     await asyncio.sleep(ACCOUNT_CREATION_DELAY)
                     
             except Exception as e:
-                print(f"[-] Browser {browser_index + 1}: Fatal error: {e}")
+                cprint_auto(f"[-] Browser {browser_index + 1}: Fatal error: {e}")
             finally:
                 await context.close()
                 await browser.close()
-                print(f"[+] Browser {browser_index + 1}: Completed")
+                cprint_auto(f"[+] Browser {browser_index + 1}: Completed")
     
     tasks = []
 
-    proxies_list: List[str] = globals().get("PROXIES", []) or []
     for browser_index in range(browsers_count):
         accounts_for_this_browser = accounts_per_browser + (1 if browser_index < remainder else 0)
         if accounts_for_this_browser > 0:
-            proxy_for_browser: Optional[str] = None
-            if proxies_list:
-                proxy_for_browser = proxies_list[browser_index % len(proxies_list)]
-            task = asyncio.create_task(browser_worker(browser_index, accounts_for_this_browser, proxy_for_browser))
+            task = asyncio.create_task(browser_worker(browser_index, accounts_for_this_browser, None))
             tasks.append(task)
     
     cprint_auto(f"[+] Starting {len(tasks)} browsers in parallel...")
@@ -361,7 +502,7 @@ async def create_accounts_multi_browser_async(accounts_count: int, browsers_coun
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="PixAI account creator (multi-browser)")
     parser.add_argument("--accounts", type=int, required=True, help="Total number of accounts to create")
-    parser.add_argument("--browsers", type=int, required=True, help="Number of parallel browser instances")
+    parser.add_argument("--browsers", type=int, default=None, help="Number of parallel browser instances (auto-detected from proxies if not specified)")
     parser.add_argument("--headless", type=str, default=os.getenv("HEADLESS", str(HEADLESS).lower()), help="true/false to run headless")
     parser.add_argument("--api-url", type=str, default=os.getenv("API_URL", API_URL), help="API URL to send created accounts")
     parser.add_argument("--email-domain", type=str, default=os.getenv("EMAIL_DOMAIN", EMAIL_DOMAIN), help="Email domain for generated accounts")
@@ -371,10 +512,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--proxy", type=str, default=os.getenv("PROXY", None), help="Single proxy URL to use (overrides proxies file for that browser)")
     return parser.parse_args()
 
-def load_proxies(proxies_file: Optional[str]) -> List[str]:
+def load_proxies(proxies_file: Optional[str]) -> Tuple[List[str], int]:
     proxies: List[str] = []
     if not proxies_file:
-        return proxies
+        return proxies, 0
     try:
         with open(proxies_file, "r", encoding="utf-8") as f:
             for line in f:
@@ -382,9 +523,10 @@ def load_proxies(proxies_file: Optional[str]) -> List[str]:
                 if not url or url.startswith("#"):
                     continue
                 proxies.append(url)
+        cprint_auto(f"[+] Loaded {len(proxies)} proxies from {proxies_file}")
     except Exception as e:
         print(f"[!] Failed to read proxies file: {e}")
-    return proxies
+    return proxies, len(proxies)
 
 def main():
     global API_URL, EMAIL_DOMAIN, HEADLESS, PROXIES, URL_USERNAME
@@ -403,13 +545,31 @@ def main():
     API_URL = args.api_url
     EMAIL_DOMAIN = args.email_domain
     HEADLESS = str(args.headless).strip().lower() in ("1", "true", "yes", "on")
-    PROXIES = load_proxies(args.proxies_file)
+    PROXIES, proxies_count = load_proxies(args.proxies_file)
     if args.proxy:
         PROXIES = [args.proxy] + PROXIES
+        proxies_count = len(PROXIES)
+
+    if args.browsers is None:
+        if proxies_count > 0:
+            args.browsers = min(args.accounts, proxies_count)
+            cprint_auto(f"[+] Auto-detected browsers: {args.browsers} (based on {proxies_count} proxies and {args.accounts} accounts)")
+        else:
+            args.browsers = 1
+            cprint_auto(f"[+] Auto-detected browsers: {args.browsers} (no proxies available)")
 
     cprint_auto(f"[DEBUG] Headless: {HEADLESS}")
     if PROXIES:
-        cprint_auto(f"[DEBUG] Proxies loaded: {len(PROXIES)}")
+        cprint_auto(f"[DEBUG] Proxies loaded: {proxies_count}")
+        
+        if args.browsers > proxies_count:
+            cprint_auto(f"[!] Warning: Requested {args.browsers} browsers but only {proxies_count} proxies available")
+            cprint_auto(f"[!] Some browsers will share proxies")
+        elif args.browsers < proxies_count:
+            optimal_browsers = min(args.accounts, proxies_count)
+            if optimal_browsers > args.browsers:
+                cprint_auto(f"[+] Info: You have {proxies_count} proxies available")
+                cprint_auto(f"[+] Info: You could use up to {optimal_browsers} browsers for better performance")
     
     try:
         cprint_auto(f"[DEBUG] Multi-browser mode: {args.accounts} accounts, {args.browsers} browsers")
