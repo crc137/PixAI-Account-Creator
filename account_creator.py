@@ -12,7 +12,7 @@ from playwright.async_api import async_playwright
 
 # Settings
 API_URL = "https://pixai.coonlink.com/api/v1/boostlikes/accountcreator-add" # change to your API URL
-HEADLESS = True # True - headless, False - visible
+HEADLESS = False # True - headless, False - visible
 BROWSER_ARGS = ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"] # add your own browser arguments
 EMAIL_DOMAIN = "coonlink.com" # change to your domain
 
@@ -174,20 +174,19 @@ async def create_account_once_async(pw, context, page, email: str, password: str
                 try:
                     await page.wait_for_selector("button:has-text('Generate')", timeout=5000)
                     print("[+] Account creation confirmed!")
-            return True
+                    return True
                 except Exception:
                     print("[-] Account creation failed - no Generate button found")
-            return False
-            
-    except Exception as e:
+                    return False
+                    
+            except Exception as e:
                 print(f"[-] Account creation attempt {attempt + 1} failed: {e}")
                 if attempt < max_attempts - 1:
                     print(f"[+] Waiting 5 seconds before retry...")
                     await asyncio.sleep(5)
                 else:
                     print("[-] All account creation attempts failed")
-        return False
-        
+                    return False
         return False
         
     except Exception as e:
