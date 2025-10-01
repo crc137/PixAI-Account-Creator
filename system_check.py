@@ -138,7 +138,7 @@ def calculate_optimal_browsers(cpu_cores, total_memory):
     print(f"[>] Recommended browsers: {recommended}")
     print(f"[>] Maximum (by resources): {safe_browsers}")
     print(f"[>] System rating: {rating}")
-    print(f"[?] If you have 24GB+ and 8+ cores, you can run 8 browsers")
+    print(f"[?] If you have 24GB+ and 8+ cores, you can run 10 - 20 browsers")
     
     print("[>] COMMAND EXAMPLES:")
     print("-" * 30)
