@@ -58,7 +58,7 @@ Before running, you **MUST** configure the following settings in the `account_cr
 API_URL = "https://pixai.coonlink.com/api/v1/boostlikes/accountcreator-add"  # YOUR API URL
 HEADLESS = False  # True - headless, False - visible browser
 BROWSER_ARGS = ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
-EMAIL_DOMAIN = "your-domain.com"  # Your domain for email generation
+EMAIL_DOMAIN = "coonlink.com"  # Your domain for email generation
 ```
 
 **Important Settings:**
