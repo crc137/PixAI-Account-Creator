@@ -1,78 +1,80 @@
-# PixAI Account Creator
+# PixAI-Account-Creator
 
-A system for automatically creating PixAI accounts.
+Welcome to PixAI-Account-Creator, your go-to Python automation tool for effortlessly generating multiple accounts on the PixAI platform!
+Streamline your account provisioning process, integrate new accounts with external systems, and save valuable time.
 
-## Installation
-### 1. Download the files
+## Features
 
-Copy the project folder to your computer.
+This project is packed with features designed to make mass account creation a breeze:
+*  **Automated Account Registration:** Leverages `Playwright` for robust browser automation, handling PixAI's registration flow from start to finish, supporting both headless (background) and visible browser modes.
+*  **Parallel Processing:** Significantly speeds up creation by concurrently registering accounts across multiple browser instances. Configure the number of parallel operations to match your system's capabilities.
+*  **Dynamic Credential Generation:** Automatically generates unique email addresses (using a configurable domain) and strong, secure passwords for every new account.
+*  **External API Integration:** Seamlessly sends newly created account credentials (email and password) via HTTP POST requests to a user-defined API endpoint, enabling easy integration with your external systems or databases.
+*  **System Performance Analysis:** Includes a dedicated `system_check.py` script that analyzes your host machine's CPU, RAM, and GPU to recommend the optimal number of parallel browser instances for maximum efficiency.
+*  **Highly Configurable:** Easily customize key operational parameters such as the external API URL, headless browser mode, email domain, and additional browser arguments directly within the script.
+*  **Robust Error Handling:** Incorporates basic error handling and retry mechanisms to enhance stability and ensure smoother operation against transient website issues.
 
-### 2. Install dependencies
+## Technologies Used
 
-```bash
-pip install -r requirements.txt
-playwright install chromium
-```
+This project is built primarily with Python and relies on powerful libraries for automation and integration:
 
-### 3. Check your system (recommended)
+### Core
+*   **Python:** The core programming language powering the automation logic.
+*   **Playwright:** A robust library for browser automation, enabling headless and headed interaction with web pages.
+*   **Requests:** (Implied) For making HTTP POST requests to external APIs for account integration.
 
-```bash
-python3 system_check.py
-```
+## Getting Started
 
-This script will show the optimal number of browsers for your machine.
+Follow these steps to get PixAI-Account-Creator up and running on your local machine.
 
-### 4. Configure the script
+### Prerequisites
 
-Open `account_creator.py` and adjust the settings at the top:
+*   **Python 3.8+** installed on your system.
+*   Internet connection for downloading dependencies and accessing PixAI.
 
-```python
-# Settings
-API_URL = "https://pixai.coonlink.com/api/v1/boostlikes/accountcreator-add"  # Your server API
-HEADLESS = False  # True = headless mode, False = visible browser
-BROWSER_ARGS = ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
-EMAIL_DOMAIN = "coonlink.com"  # Your email domain
-```
+### Installation
 
-## Usage
+1.  **Clone the Repository:**
+    ```bash
+    git clone https://github.com/your-username/PixAI-Account-Creator.git
+    cd PixAI-Account-Creator
+    ```
+2.  **Install Python Dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+3.  **Install Playwright Browser Binaries:**
+    Playwright requires browser binaries (like Chromium, Firefox, WebKit). Install them with:
+    ```bash
+    playwright install
+    ```
 
-```bash
-python3 account_creator.py --accounts=10 --browsers=2
-```
+### Configuration (Optional but Recommended)
 
-**Parameters:**
+Before running, you might want to adjust settings directly within the `account_creator.py` script, such as:
+*   `API_URL`: Your external API endpoint for receiving account data.
+*   `HEADLESS`: Set to `False` to watch the browser automation in action.
+*   `EMAIL_DOMAIN`: The domain for generated email addresses.
 
-* `--accounts=N` — number of accounts to create
-* `--browsers=M` — number of browsers (parallel sessions)
+### Running the Creator
 
-**Examples:**
+1.  **Check System Performance (Recommended First Step):**
+    Run the `system_check.py` script to get recommendations for optimal parallel browser instances based on your hardware:
+    ```bash
+    python system_check.py
+    ```
+    This will help you configure the `--parallel` argument efficiently.
 
-```bash
-# Create 5 accounts with 1 browser
-python3 account_creator.py --accounts=5 --browsers=1
+2.  **Execute the Account Creator:**
+    Run the `account_creator.py` script from your terminal. You can specify the number of accounts to create and the number of parallel browser instances using command-line arguments:
 
-# Create 20 accounts with 3 browsers
-python3 account_creator.py --accounts=20 --browsers=3
-```
+    ```bash
+    # Example: Create 10 accounts using 2 parallel browser instances
+    python account_creator.py --accounts 10 --parallel 2
 
-## Configuration
-
-You can edit the following in `account_creator.py`:
-
-* **API_URL** — server endpoint to send account data
-* **HEADLESS** — browser mode (True/False)
-* **EMAIL_DOMAIN** — domain used for email generation
-* **BROWSER_ARGS** — extra browser arguments
-
-## How it works
-
-1. The script registers new accounts on PixAI
-2. Sends the account data to your server
-3. The server stores them in the database
-4. Creation statistics are displayed
-
-## Requirements
-
-* Python 3.7+
-* Internet connection
-* API server access
+    # Example: Create 5 accounts in visible browser mode
+    python account_creator.py --accounts 5 --headless False
+    ```
+    *   `--accounts <NUMBER>`: The total number of PixAI accounts to create.
+    *   `--parallel <NUMBER>`: The number of browser instances to run concurrently.
+    *   `--headless <True/False>`: Run browsers in headless (background) mode or visible mode. (Overrides script configuration)
