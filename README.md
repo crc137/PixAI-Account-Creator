@@ -8,13 +8,20 @@ Streamline your account provisioning process, integrate new accounts with extern
 ## Features
 
 This project is packed with features designed to make mass account creation a breeze:
+
+### Core Features
 *  **Automated Account Registration:** Leverages `Playwright` for robust browser automation, handling PixAI's registration flow from start to finish, supporting both headless (background) and visible browser modes.
 *  **Parallel Processing:** Significantly speeds up creation by concurrently registering accounts across multiple browser instances. Configure the number of parallel operations to match your system's capabilities.
 *  **Dynamic Credential Generation:** Automatically generates unique email addresses (using a configurable domain) and strong, secure passwords for every new account.
 *  **External API Integration:** Seamlessly sends newly created account credentials (email and password) via HTTP POST requests to a user-defined API endpoint, enabling easy integration with your external systems or databases.
+
+### Advanced Features
 *  **System Performance Analysis:** Includes a dedicated `system_check.py` script that analyzes your host machine's CPU, RAM, and GPU to recommend the optimal number of parallel browser instances for maximum efficiency.
-*  **Highly Configurable:** Easily customize key operational parameters such as the external API URL, headless browser mode, email domain, and additional browser arguments directly within the script.
-*  **Robust Error Handling:** Incorporates basic error handling and retry mechanisms to enhance stability and ensure smoother operation against transient website issues.
+*  **Proxy Support & Rotation:** Automatic proxy rotation when rate limits are detected, supporting both single proxy and proxy file configurations.
+*  **Multi-Configuration Support:** Flexible configuration through config.py, environment variables, and command-line arguments with clear precedence.
+*  **Export Capabilities:** Save results to CSV files and generate JSON summaries for integration with other systems.
+*  **Color-Coded Output:** Intuitive console output with color-coded messages for better user experience.
+*  **Robust Error Handling:** Incorporates comprehensive error handling, retry mechanisms, and automatic proxy rotation to enhance stability.
 
 ## Technologies Used
 
@@ -41,54 +48,179 @@ Follow these steps to get PixAI-Account-Creator up and running on your local mac
     git clone https://github.com/crc137/PixAI-Account-Creator.git
     cd PixAI-Account-Creator
     ```
-2.  **Install Python Dependencies:**
+
+2.  **Quick Setup (Recommended):**
+    Use the automated installation script:
     ```bash
-    pip install -r requirements.txt
+    chmod +x install.sh
+    ./install.sh
     ```
-3.  **Install Playwright Browser Binaries:**
-    Playwright requires browser binaries (like Chromium, Firefox, WebKit). Install them with:
+
+3.  **Manual Installation:**
+    If you prefer manual setup:
     ```bash
+    # Install Python dependencies
+    pip install -r requirements.txt
+    
+    # Install Playwright browser binaries
     playwright install && playwright install-deps
     ```
 
-### Configuration (Required)
+### Configuration
 
-Before running, you **MUST** configure the following settings in the `account_creator.py` script:
+The project supports multiple configuration methods with the following precedence (highest to lowest):
+1. **Command-line arguments** (highest priority)
+2. **Environment variables**
+3. **config.py file** (defaults)
+
+#### Method 1: config.py (Recommended for defaults)
+
+Edit `config.py` to set your default configuration:
 
 ```python
-API_URL = "https://pixai.coonlink.com/api/v1/boostlikes/accountcreator-add"  # YOUR API URL
-HEADLESS = True  # True - headless, False - visible browser
-BROWSER_ARGS = ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
-EMAIL_DOMAIN = "coonlink.com"  # Your domain for email generation
+# API endpoint to receive created accounts
+API_URL = "https://your-api.com/endpoint"
+
+# Whether browsers should run headless by default
+HEADLESS = True
+
+# Default email domain for generated accounts
+EMAIL_DOMAIN = "yourdomain.com"
+
+# Extra Chromium flags
+BROWSER_ARGS = [
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--disable-dev-shm-usage",
+]
+
+# Optional path to proxies file
+PROXIES_FILE = "proxies.txt"
 ```
 
-**Important Settings:**
-*   `API_URL`: **REQUIRED** - Your external API endpoint for receiving account data
-*   `HEADLESS`: Set to `False` to watch the browser automation in action
-*   `EMAIL_DOMAIN`: The domain for generated email addresses
+#### Method 2: Environment Variables
 
-### Running the Creator
+Set environment variables to override config.py defaults:
 
-1.  **Check System Performance (Recommended First Step):**
-    Run the `system_check.py` script to get recommendations for optimal parallel browser instances based on your hardware:
-    ```bash
-    python system_check.py
-    ```
-    This will help you configure the `--parallel` argument efficiently.
+```bash
+export API_URL="https://your-api.com/endpoint"
+export EMAIL_DOMAIN="yourdomain.com"
+export HEADLESS="false"
+export PROXY="http://user:pass@proxy:port"
+export PROXIES_FILE="proxies.txt"
+export BROWSER_ARGS="--no-sandbox,--disable-gpu,--disable-dev-shm-usage"
+```
 
-2.  **Execute the Account Creator:**
-    Run the `account_creator.py` script from your terminal. You can specify the number of accounts to create and the number of parallel browser instances using command-line arguments:
+#### Method 3: Command-line Arguments (Highest Priority)
 
-    ```bash
-    # Example: Create 10 accounts using 2 parallel browser instances
-    python account_creator.py --accounts=10 --browsers=2
+All settings can be overridden via CLI arguments (see Usage section below).
 
-    # Example: Create 5 accounts with 1 browser
-    python account_creator.py --accounts=5 --browsers=1
-    ```
-    
-    **Command Parameters:**
-    *   `--accounts=N`: The total number of PixAI accounts to create
-    *   `--browsers=N`: The number of browser instances to run concurrently
-    
-    **Important:** Make sure you have configured the `API_URL` in the script before running, otherwise accounts won't be saved to your server!
+### Usage
+
+#### 1. System Performance Check (Recommended)
+
+Run the system analysis to get optimal browser recommendations:
+
+```bash
+# Basic system check
+python3 system_check.py
+
+# With JSON output for integration
+python3 system_check.py --json
+
+# Custom resource requirements
+python3 system_check.py --memory-per-browser 1.0 --cpu-per-browser 0.5
+
+# Auto-install missing dependencies
+python3 system_check.py --auto-install
+```
+
+#### 2. Account Creation
+
+**Basic Usage:**
+```bash
+# Create 10 accounts with 2 browsers
+python3 account_creator.py --accounts 10 --browsers 2
+
+# Visible browser mode
+python3 account_creator.py --accounts 5 --browsers 1 --headless false
+```
+
+**Advanced Usage:**
+```bash
+# With custom API and domain
+python3 account_creator.py --accounts 10 --browsers 2 \
+  --api-url "https://your-api.com/endpoint" \
+  --email-domain "yourdomain.com"
+
+# With proxy support
+python3 account_creator.py --accounts 10 --browsers 2 \
+  --proxy "http://user:pass@proxy:port"
+
+# With proxy file (one proxy per line)
+python3 account_creator.py --accounts 10 --browsers 2 \
+  --proxies-file "proxies.txt"
+
+# Export results
+python3 account_creator.py --accounts 10 --browsers 2 \
+  --csv "results/accounts.csv" --json
+```
+
+#### Command-line Arguments
+
+| Argument | Description | Example |
+|----------|-------------|---------|
+| `--accounts` | Total number of accounts to create | `--accounts 10` |
+| `--browsers` | Number of parallel browser instances | `--browsers 2` |
+| `--headless` | Run browsers in headless mode | `--headless false` |
+| `--api-url` | API endpoint for account data | `--api-url "https://api.com/endpoint"` |
+| `--email-domain` | Domain for generated emails | `--email-domain "yourdomain.com"` |
+| `--proxy` | Single proxy URL | `--proxy "http://user:pass@host:port"` |
+| `--proxies-file` | File with proxy URLs (one per line) | `--proxies-file "proxies.txt"` |
+| `--csv` | Save results to CSV file | `--csv "results/accounts.csv"` |
+| `--json` | Print JSON summary | `--json` |
+
+#### Proxy Configuration
+
+The tool supports both single proxy and proxy rotation:
+
+**Single Proxy:**
+```bash
+python3 account_creator.py --accounts 10 --browsers 2 --proxy "http://user:pass@proxy:port"
+```
+
+**Proxy File (proxies.txt):**
+```
+http://user1:pass1@proxy1:port
+http://user2:pass2@proxy2:port
+socks5://user3:pass3@proxy3:port
+```
+
+**Automatic Proxy Rotation:**
+When rate limits are detected ("Too many requests"), the tool automatically:
+1. Closes the current browser
+2. Switches to the next proxy in the list
+3. Relaunches the browser with the new proxy
+4. Retries the same account
+
+#### Output Formats
+
+**Console Output:**
+The tool provides color-coded console output:
+- `[+]` - Success messages (green)
+- `[-]` - Error messages (red)
+- `[>]` - Information (blue)
+- `[!]` - Warnings (yellow)
+- `[?]` - Debug messages (cyan)
+
+**CSV Export:**
+```bash
+python3 account_creator.py --accounts 10 --browsers 2 --csv "results/accounts.csv"
+```
+Creates a CSV file with columns: `email`, `password`, `status`
+
+**JSON Export:**
+```bash
+python3 account_creator.py --accounts 10 --browsers 2 --json
+```
+Outputs JSON summary with creation statistics.

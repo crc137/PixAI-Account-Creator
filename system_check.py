@@ -5,6 +5,15 @@ import platform
 import subprocess
 import sys
 import os
+import argparse
+import json
+
+GREEN = '\033[0;32m'
+RED = '\033[0;31m'
+BLUE = '\033[0;34m'
+YELLOW = '\033[0;33m'
+CYAN = '\033[0;36m'
+NC = '\033[0m'
 
 try:
     import GPUtil
@@ -12,189 +21,267 @@ try:
 except ImportError:
     GPU_AVAILABLE = False
 
+def cprint(msg, color=NC, end='\n'):
+    print(f"{color}{msg}{NC}", end=end)
+
 def get_system_info():
-    print("=" * 60)
-    print("[?] SYSTEM ANALYSIS FOR OPTIMAL NUMBER OF BROWSERS")
-    print("=" * 60)
+    cprint("=" * 60, CYAN)
+    cprint("[?] SYSTEM ANALYSIS FOR OPTIMAL NUMBER OF BROWSERS", CYAN)
+    cprint("=" * 60, CYAN)
     
-    print(f"[>] Operating System: {platform.system()} {platform.release()}")
-    print(f"[>] Architecture: {platform.machine()}")
-    print(f"[>] Python version: {sys.version.split()[0]}")
+    cprint(f"[>] Operating System: {platform.system()} {platform.release()}", BLUE)
+    cprint(f"[>] Architecture: {platform.machine()}", BLUE)
+    cprint(f"[>] Python version: {sys.version.split()[0]}", BLUE)
     print()
 
 def get_cpu_info():
-    print("[+] CPU:")
-    print("-" * 30)
+    cprint("[+] CPU:", GREEN)
+    cprint("-" * 30, CYAN)
     
     cpu_count = psutil.cpu_count(logical=False)
     cpu_count_logical = psutil.cpu_count(logical=True)
     
-    print(f"[>] Physical cores: {cpu_count}")
-    print(f"[>] Logical cores: {cpu_count_logical}")
+    cprint(f"[>] Physical cores: {cpu_count}", BLUE)
+    cprint(f"[>] Logical cores: {cpu_count_logical}", BLUE)
     
     cpu_percent = psutil.cpu_percent(interval=1)
-    print(f"[>] Current load: {cpu_percent}%")
+    cprint(f"[>] Current load: {cpu_percent}%", BLUE)
     
-    try:
-        cpu_freq = psutil.cpu_freq()
-        if cpu_freq:
-            print(f"[>] Frequency: {cpu_freq.current:.0f} MHz (max: {cpu_freq.max:.0f} MHz)")
-    except:
-        print("[?] Frequency: unavailable")
+    cpu_freq = psutil.cpu_freq()
+    if cpu_freq:
+        cprint(f"[>] Frequency: {cpu_freq.current:.0f} MHz (max: {cpu_freq.max:.0f} MHz)", BLUE)
+    else:
+        cprint("[?] Frequency: unavailable", YELLOW)
     
     print()
     return cpu_count
 
 def get_memory_info():
-    print("[+] MEMORY (RAM):")
-    print("-" * 30)
+    cprint("[+] MEMORY (RAM):", GREEN)
+    cprint("-" * 30, CYAN)
     
     memory = psutil.virtual_memory()
     total_gb = memory.total / (1024**3)
     available_gb = memory.available / (1024**3)
     used_percent = memory.percent
     
-    print(f"[>] Total: {total_gb:.1f} GB")
-    print(f"[>] Available: {available_gb:.1f} GB")
-    print(f"[>] Used: {used_percent:.1f}%")
+    cprint(f"[>] Total: {total_gb:.1f} GB", BLUE)
+    cprint(f"[>] Available: {available_gb:.1f} GB", BLUE)
+    cprint(f"[>] Used: {used_percent:.1f}%", BLUE)
     
     if total_gb >= 16:
-        memory_rating = "Excellent"
+        memory_rating = f"{GREEN}Excellent{NC}"
     elif total_gb >= 8:
-        memory_rating = "Good"
+        memory_rating = f"{CYAN}Good{NC}"
     elif total_gb >= 4:
-        memory_rating = "Average"
+        memory_rating = f"{YELLOW}Average{NC}"
     else:
-        memory_rating = "Low"
+        memory_rating = f"{RED}Low{NC}"
     
-    print(f"[>] Memory rating: {memory_rating}")
+    cprint(f"[>] Memory rating: {memory_rating}", BLUE)
     print()
     return total_gb
 
-def get_gpu_info():
-    print("[+] GPU:")
-    print("-" * 30)
+def get_gpu_info(gpus_info):
+    cprint("[+] GPU:", GREEN)
+    cprint("-" * 30, CYAN)
     
     if not GPU_AVAILABLE:
-        print("GPUtil не установлен - информация о GPU недоступна")
-        print("Для полной информации установите: pip install GPUtil")
+        cprint("[!] GPUtil is not installed - GPU information unavailable", YELLOW)
+        cprint("[>] Install with: pip install GPUtil  # or run ./install.sh", BLUE)
         print()
         return
-    
-    try:
-        gpus = GPUtil.getGPUs()
-        if gpus:
-            for i, gpu in enumerate(gpus):
-                print(f"[>] GPU {i+1}: {gpu.name}")
-                print(f"[>] Memory: {gpu.memoryUsed}MB / {gpu.memoryTotal}MB")
-                print(f"[>] Load: {gpu.load * 100:.1f}%")
-                print(f"[>] Temperature: {gpu.temperature}°C")
-        else:
-            print("[-] No GPU found or not supported")
-    except Exception as e:
-        print(f"[-] Error getting GPU info: {e}")
-        print("[?] Maybe nvidia-ml-py is not installed")
+
+    if gpus_info:
+        cprint(f"[>] GPUs detected: {len(gpus_info)}", BLUE)
+        for i, gpu in enumerate(gpus_info):
+            cprint(f"[>] GPU {i+1}: {gpu['name']} ({gpu['memory_total_mb']}MB)", BLUE)
+    else:
+        cprint("[!] No NVIDIA GPU detected or driver not installed", YELLOW)
     
     print()
 
 def get_disk_info():
-    print("[+] DISK SPACE:")
-    print("-" * 30)
+    cprint("[+] DISK SPACE:", GREEN)
+    cprint("-" * 30, CYAN)
     
     disk = psutil.disk_usage('/')
     total_gb = disk.total / (1024**3)
     free_gb = disk.free / (1024**3)
     used_percent = (disk.used / disk.total) * 100
     
-    print(f"[>] Total: {total_gb:.1f} GB")
-    print(f"[>] Free: {free_gb:.1f} GB")
-    print(f"[>] Used: {used_percent:.1f}%")
+    cprint(f"[>] Total: {total_gb:.1f} GB", BLUE)
+    cprint(f"[>] Free: {free_gb:.1f} GB", BLUE)
+    cprint(f"[>] Used: {used_percent:.1f}%", BLUE)
     print()
 
-def calculate_optimal_browsers(cpu_cores, total_memory):
-    print("[+] RECOMMENDATIONS:")
-    print("-" * 30)
+def calculate_optimal_browsers(cpu_cores, total_memory, memory_per_browser=0.5, cpu_per_browser=0.3):
+    cprint("[+] RECOMMENDATIONS:", GREEN)
+    cprint("-" * 30, CYAN)
     
-    memory_per_browser = 0.5
-    cpu_per_browser = 0.3
-    
-    max_by_memory = int(total_memory * 0.7 / memory_per_browser)
-    max_by_cpu = int(cpu_cores * 0.8 / cpu_per_browser)
-    safe_browsers = min(max_by_memory, max_by_cpu, 10)
+    max_by_memory = int(total_memory * 0.7 / memory_per_browser) if memory_per_browser > 0 else 10
+    max_by_cpu = int(cpu_cores * 0.8 / cpu_per_browser) if cpu_per_browser > 0 else 10
+    safe_browsers = max(1, min(max_by_memory, max_by_cpu))
     
     if total_memory >= 16 and cpu_cores >= 8:
         recommended = min(8, safe_browsers)
-        rating = "Excellent - you can run many browsers"
+        rating = f"{GREEN}Excellent{NC} - you can run many browsers"
     elif total_memory >= 8 and cpu_cores >= 4:
         recommended = min(4, safe_browsers)
-        rating = "Good - moderate number of browsers"
+        rating = f"{CYAN}Good{NC} - moderate number of browsers"
     elif total_memory >= 4 and cpu_cores >= 2:
         recommended = min(2, safe_browsers)
-        rating = "Average - limited number of browsers"
+        rating = f"{YELLOW}Average{NC} - limited number of browsers"
     else:
         recommended = 1
-        rating = "Low - only 1 browser"
+        rating = f"{RED}Low{NC} - only 1 browser"
     
-    print(f"[>] Recommended browsers: {recommended}")
-    print(f"[>] Maximum (by resources): {safe_browsers}")
-    print(f"[>] System rating: {rating}")
-    print(f"[?] If you have 24GB+ and 8+ cores, you can run 10 - 20 browsers")
+    cprint(f"[>] Recommended browsers: {recommended}", BLUE)
+    cprint(f"[>] Maximum (by resources): {safe_browsers}", BLUE)
+    cprint(f"[>] System rating: {rating}", BLUE)
     
-    print("[>] COMMAND EXAMPLES:")
-    print("-" * 30)
-    print(f"# Conservative mode (safe)")
-    print(f"python3 account_creator.py --accounts=10 --browsers=1")
-    print()
-    print(f"# Recommended mode")
-    print(f"python3 account_creator.py --accounts=20 --browsers={recommended}")
-    print()
-    print(f"# Maximum mode (caution!)")
-    print(f"python3 account_creator.py --accounts=50 --browsers={safe_browsers}")
-    print()
+
+    max_possible_browsers = safe_browsers
+    if total_memory >= 24 and cpu_cores >= 8:
+        max_possible_browsers = max(safe_browsers, 10)
+        cprint(f"[!] High-end system: you can run up to {max_possible_browsers} browsers", YELLOW)
     
+    cprint("[>] COMMAND EXAMPLES:", CYAN)
+    cprint("-" * 30, CYAN)
+
     return recommended, safe_browsers
 
-def check_browser_requirements():
-    print("[+] BROWSER CHECK:")
-    print("-" * 30)
+def check_browser_requirements(auto_install=False):
+    cprint("[+] BROWSER CHECK:", GREEN)
+    cprint("-" * 30, CYAN)
     
     try:
-        result = subprocess.run(['playwright', '--version'], 
-                              capture_output=True, text=True, timeout=10)
-        if result.returncode == 0:
-            print(f"[>] Playwright installed: {result.stdout.strip()}")
+        command = ['playwright.cmd', '--version'] if os.name == 'nt' else ['playwright', '--version']
+        subprocess.run(command, check=True, capture_output=True, text=True, timeout=10)
+        cprint("[>] Playwright is installed", BLUE)
+    except Exception:
+        cprint("[-] Playwright not found", RED)
+        if auto_install:
+            cprint("[>] Installing Playwright and Chromium...", BLUE)
+            try:
+                subprocess.run([sys.executable, '-m', 'pip', 'install', 'playwright'], check=True)
+                subprocess.run(['playwright', 'install-deps'], check=True)
+                subprocess.run(['playwright', 'install', 'chromium'], check=True)
+                cprint("[>] Playwright installed successfully", GREEN)
+            except Exception as e:
+                cprint(f"[-] Auto-install failed: {e}", RED)
+                cprint("[>] Manual install: pip install playwright && playwright install-deps && playwright install chromium", YELLOW)
         else:
-            print("[-] Playwright not found")
-            print("[>] Install: pip install playwright && playwright install chromium")
-    except Exception as e:
-        print(f"[-] Error checking Playwright: {e}")
+            cprint("[>] Install manually: pip install playwright && playwright install-deps && playwright install chromium", YELLOW)
     
     print()
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="System analysis for optimal number of browsers")
+    parser.add_argument('--memory-per-browser', type=float, default=0.5, help='GB of RAM estimated per browser')
+    parser.add_argument('--cpu-per-browser', type=float, default=0.3, help='CPU cores estimated per browser')
+    parser.add_argument('--accounts-per-browser', type=int, default=5, help='Accounts processed per browser instance')
+    parser.add_argument('--json', action='store_true', help='Print JSON summary in addition to human-readable output')
+    parser.add_argument('--auto-install', action='store_true', help='Auto-install Playwright if missing')
+    return parser.parse_args()
+
 def main():
+    args = parse_args()
+    
+    # Pre-calculate GPU info to avoid double calls
+    gpus_info = []
+    if GPU_AVAILABLE:
+        try:
+            gpus = GPUtil.getGPUs()
+            for gpu in gpus:
+                gpus_info.append({"name": gpu.name, "memory_total_mb": gpu.memoryTotal})
+        except Exception:
+            pass
+    
     try:
         get_system_info()
         cpu_cores = get_cpu_info()
         total_memory = get_memory_info()
-        get_gpu_info()
+        get_gpu_info(gpus_info)
         get_disk_info()
-        check_browser_requirements()
+        check_browser_requirements(auto_install=args.auto_install)
         
-        recommended, max_browsers = calculate_optimal_browsers(cpu_cores, total_memory)
+        recommended, max_browsers = calculate_optimal_browsers(
+            cpu_cores,
+            total_memory,
+            memory_per_browser=args.memory_per_browser,
+            cpu_per_browser=args.cpu_per_browser
+        )
         
-        print("=" * 60)
-        print("[+] ANALYSIS COMPLETE")
-        print("=" * 60)
-        print(f"[>] Recommended: use {recommended} browser(s)")
-        print(f"[>] Maximum safe: {max_browsers} browser(s)")
+        accounts_per_browser = max(1, args.accounts_per_browser)
+        conservative_browsers = 1
+        conservative_accounts = conservative_browsers * accounts_per_browser
+        recommended_accounts = recommended * accounts_per_browser
+        max_accounts = max_browsers * accounts_per_browser
+        
+        cprint("=" * 60, CYAN)
+        cprint("[+] ANALYSIS COMPLETE", GREEN)
+        cprint("=" * 60, CYAN)
+        cprint(f"[>] Recommended: use {recommended} browser(s)", BLUE)
+        cprint(f"[>] Maximum safe: {max_browsers} browser(s)", BLUE)
         print()
-        print("[?] WARNING: Start with a small number of browsers")
-        print("[?] and gradually increase, monitoring system load!")
+        cprint("[!] Start with a small number of browsers", YELLOW)
+        cprint("[!] Gradually increase, monitoring system load!", YELLOW)
+        cprint("[>] COMMAND EXAMPLES:", CYAN)
+        cprint("-" * 30, CYAN)
+        cprint(f"# Conservative mode (safe)", CYAN)
+        cprint(f"python3 account_creator.py --accounts={conservative_accounts} --browsers={conservative_browsers}", BLUE)
+        print()
+        cprint(f"# Recommended mode", CYAN)
+        cprint(f"python3 account_creator.py --accounts={recommended_accounts} --browsers={recommended}", BLUE)
+        print()
+        cprint(f"# Maximum mode (caution!)", CYAN)
+        cprint(f"python3 account_creator.py --accounts={max_accounts} --browsers={max_browsers}", BLUE)
+        print()
+        
+        if total_memory >= 24 and cpu_cores >= 8:
+            highend_browsers = max(10, max_browsers)
+            highend_accounts = highend_browsers * accounts_per_browser
+            cprint(f"# High-end mode", CYAN)
+            cprint(f"python3 account_creator.py --accounts={highend_accounts} --browsers={highend_browsers}", BLUE)
+            print()
+
+        if args.json:
+            summary = {
+                "os": {
+                    "system": platform.system(),
+                    "release": platform.release(),
+                    "architecture": platform.machine(),
+                    "python": sys.version.split()[0],
+                },
+                "resources": {
+                    "cpu_cores_physical": psutil.cpu_count(logical=False),
+                    "cpu_cores_logical": psutil.cpu_count(logical=True),
+                    "cpu_load_percent": psutil.cpu_percent(interval=1),
+                    "memory_total_gb": round(psutil.virtual_memory().total / (1024**3), 1),
+                    "disk_total_gb": round(psutil.disk_usage('/').total / (1024**3), 1),
+                },
+                "gpu": gpus_info,
+                "parameters": {
+                    "memory_per_browser_gb": args.memory_per_browser,
+                    "cpu_per_browser_core": args.cpu_per_browser,
+                    "accounts_per_browser": accounts_per_browser,
+                },
+                "recommendations": {
+                    "recommended_browsers": recommended,
+                    "max_safe_browsers": max_browsers,
+                    "conservative_browsers": conservative_browsers,
+                    "conservative_accounts": conservative_accounts,
+                    "recommended_accounts": recommended_accounts,
+                    "max_accounts": max_accounts,
+                }
+            }
+            print(json.dumps(summary, indent=2))
         
     except KeyboardInterrupt:
-        print("\n[-] Analysis interrupted by user")
+        cprint("\n[-] Analysis interrupted by user", RED)
     except Exception as e:
-        print(f"\n[-] Analysis error: {e}")
+        cprint(f"\n[-] Analysis error: {e}", RED)
 
 if __name__ == "__main__":
     main()

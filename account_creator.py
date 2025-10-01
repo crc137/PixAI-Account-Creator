@@ -6,15 +6,45 @@ import time
 import random
 import string
 import asyncio
+import argparse
+import json
+import csv
 import requests
-from typing import List, Dict
+from typing import List, Dict, Optional, Tuple
 from playwright.async_api import async_playwright
+import config as cfg
 
-# Settings
-API_URL = "https://pixai.coonlink.com/api/v1/boostlikes/accountcreator-add" # change to your API URL
-HEADLESS = True # True - headless, False - visible
-BROWSER_ARGS = ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"] # add your own browser arguments
-EMAIL_DOMAIN = "coonlink.com" # change to your domain
+GREEN = '\033[0;32m'
+RED = '\033[0;31m'
+BLUE = '\033[0;34m'
+YELLOW = '\033[0;33m'
+CYAN = '\033[0;36m'
+NC = '\033[0m'
+
+def cprint_auto(msg: str, end: str = '\n') -> None:
+    color = NC
+    try:
+        if isinstance(msg, str):
+            if msg.startswith("[+]"):
+                color = GREEN
+            elif msg.startswith("[-]"):
+                color = RED
+            elif msg.startswith("[>]"):
+                color = BLUE
+            elif msg.startswith("[!]"):
+                color = YELLOW
+            elif msg.startswith("[?]") or msg.startswith("[DEBUG]"):
+                color = CYAN
+    except Exception:
+        color = NC
+    print(f"{color}{msg}{NC}", end=end)
+
+API_URL = getattr(cfg, "API_URL", "https://pixai.coonlink.com/api/v1/boostlikes/accountcreator-add")
+HEADLESS = getattr(cfg, "HEADLESS", True)
+BROWSER_ARGS = list(getattr(cfg, "BROWSER_ARGS", ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]))
+EMAIL_DOMAIN = getattr(cfg, "EMAIL_DOMAIN", "coonlink.com")
+DEFAULT_PROXIES_FILE = getattr(cfg, "PROXIES_FILE", "")
+URL_USERNAME = getattr(cfg, "URL_USERNAME", "crc137")
 
 def get_env_bool(name: str, default: str = "false") -> bool:
     value = os.getenv(name, default).strip().lower()
@@ -45,22 +75,22 @@ def generate_password() -> str:
     chars = string.ascii_letters + string.digits
     return ''.join(random.choices(chars, k=12))
 
-async def create_account_once_async(pw, context, page, email: str, password: str) -> bool:
+async def create_account_once_async(pw, context, page, email: str, password: str) -> Tuple[bool, bool]:
     try:
         await page.goto("https://pixai.art/", timeout=60000)
         
         max_attempts = 3
         
         for attempt in range(max_attempts):
-            print(f"[+] Account creation attempt {attempt + 1}/{max_attempts}")
+            cprint_auto(f"[+] Account creation attempt {attempt + 1}/{max_attempts}")
             
             try:
                 try:
                     await page.get_by_role("button", name="Sign in").click()
                     await page.wait_for_timeout(300)
                 except Exception as e:
-                    print(f"[-] Could not find Sign in button: {e}")
-                    print("[+] Refreshing page and trying again...")
+                    cprint_auto(f"[-] Could not find Sign in button: {e}")
+                    cprint_auto("[+] Refreshing page and trying again...")
                     await page.reload()
                     await page.wait_for_timeout(1000)
                     await page.get_by_role("button", name="Sign in").click()
@@ -72,14 +102,14 @@ async def create_account_once_async(pw, context, page, email: str, password: str
                     if await page.locator("text=Continue with Email").count():
                         await page.locator("text=Continue with Email").click()
                     else:
-                        print("[-] Could not find 'Continue with Email' button — continue anyway")
+                        cprint_auto("[-] Could not find 'Continue with Email' button — continue anyway")
 
                 await page.wait_for_timeout(300)
                 
                 if await page.locator("text=Register").count():
                     await page.locator("text=Register").click()
 
-                print("[+] Filling email field for registration...")
+                cprint_auto("[+] Filling email field for registration...")
                 if await page.get_by_role("textbox", name="Email").count():
                     await page.get_by_role("textbox", name="Email").click()
                     await page.wait_for_timeout(300)
@@ -87,12 +117,12 @@ async def create_account_once_async(pw, context, page, email: str, password: str
                     await page.wait_for_timeout(100)
                     await page.get_by_role("textbox", name="Email").fill(email)
                     await page.wait_for_timeout(500)
-                    print(f"[+] Email filled: {email}")
+                    cprint_auto(f"[+] Email filled: {email}")
                 else:
                     await page.fill("input[type='email']", email)
                     await page.wait_for_timeout(500)
 
-                print("[+] Filling password field for registration...")
+                cprint_auto("[+] Filling password field for registration...")
                 if await page.get_by_role("textbox", name="Password").count():
                     await page.get_by_role("textbox", name="Password").click()
                     await page.wait_for_timeout(300)
@@ -100,29 +130,29 @@ async def create_account_once_async(pw, context, page, email: str, password: str
                     await page.wait_for_timeout(100)
                     await page.get_by_role("textbox", name="Password").fill(password)
                     await page.wait_for_timeout(500)
-                    print("[+] Password filled")
+                    cprint_auto("[+] Password filled")
                 else:
                     await page.fill("input[type='password']", password)
                     await page.wait_for_timeout(500)
 
-                print("[+] Verifying registration fields are filled...")
+                cprint_auto("[+] Verifying registration fields are filled...")
                 try:
                     email_value = await page.get_by_role("textbox", name="Email").input_value()
                     password_value = await page.get_by_role("textbox", name="Password").input_value()
-                    print(f"[+] Email field value: {email_value[:10]}...")
-                    print(f"[+] Password field value: {'*' * len(password_value)}")
+                    cprint_auto(f"[+] Email field value: {email_value[:10]}...")
+                    cprint_auto(f"[+] Password field value: {'*' * len(password_value)}")
                     
                     if not email_value or not password_value:
-                        print("[-] Registration fields are empty, retrying...")
+                        cprint_auto("[-] Registration fields are empty, retrying...")
                         await page.wait_for_timeout(1000)
                         continue
                 except Exception as e:
-                    print(f"[-] Could not verify registration fields: {e}")
+                    cprint_auto(f"[-] Could not verify registration fields: {e}")
                 
-                print("[+] Waiting before registration submission...")
+                cprint_auto("[+] Waiting before registration submission...")
                 await page.wait_for_timeout(1000)
 
-                print("[+] Submitting registration...")
+                cprint_auto("[+] Submitting registration...")
                 if await page.get_by_role("button", name="Sign Up").count():
                     try:
                         await page.get_by_role("button", name="Sign Up").click()
@@ -135,7 +165,7 @@ async def create_account_once_async(pw, context, page, email: str, password: str
                 else:
                     await page.locator("form").first.evaluate("form => form.submit()")
 
-                print("[+] Submitted registration. Waiting for response...")
+                cprint_auto("[+] Submitted registration. Waiting for response...")
                 await page.wait_for_timeout(2000)
                 
                 try:
@@ -147,20 +177,17 @@ async def create_account_once_async(pw, context, page, email: str, password: str
                     for selector in error_selectors:
                         if await page.locator(selector).count() > 0:
                             error_text = await page.locator(selector).first.inner_text()
-                            print(f"[-] Rate limit detected after registration: '{error_text}'")
-                            print(f"[+] Waiting 15 seconds before retry attempt {attempt + 1}...")
-                            await asyncio.sleep(15)
-                            print("[+] Continuing with retry...")
+                            cprint_auto(f"[-] Rate limit detected after registration: '{error_text}'")
                             rate_limit_found = True
                             break
                     
                     if rate_limit_found:
-                        continue
+                        return False, True
                         
                 except Exception as e:
                     print(f"[-] Error checking for rate limit: {e}")
 
-                print("[+] Waiting for account creation to complete...")
+                cprint_auto("[+] Waiting for account creation to complete...")
                 await page.wait_for_timeout(1500)
                 
                 try:
@@ -169,45 +196,45 @@ async def create_account_once_async(pw, context, page, email: str, password: str
                 except Exception:
                     pass
                 
-                print("[+] Waiting for account creation confirmation...")
+                cprint_auto("[+] Waiting for account creation confirmation...")
                 
                 try:
                     await page.wait_for_selector("button:has-text('Generate')", timeout=5000)
-                    print("[+] Account creation confirmed!")
-                    return True
+                    cprint_auto("[+] Account creation confirmed!")
+                    return True, False
                 except Exception:
                     print("[-] Account creation failed - no Generate button found")
-                    return False
+                    return False, False
                     
             except Exception as e:
                 print(f"[-] Account creation attempt {attempt + 1} failed: {e}")
                 if attempt < max_attempts - 1:
-                    print(f"[+] Waiting 5 seconds before retry...")
+                    cprint_auto(f"[+] Waiting 5 seconds before retry...")
                     await asyncio.sleep(5)
                 else:
-                    print("[-] All account creation attempts failed")
-                    return False
-        return False
+                    cprint_auto("[-] All account creation attempts failed")
+                    return False, False
+        return False, False
         
     except Exception as e:
         print(f"[-] Create account failed: {e}")
-        return False
+        return False, False
 
 async def logout_if_possible_async(page) -> None:
     try:
-        print("[+] Logging out...")
-        print("[+] Navigating to profile to clear popups...")
-        await page.goto("https://pixai.art/@crc137/artworks", timeout=30000)
+        cprint_auto("[+] Logging out...")
+        cprint_auto("[+] Navigating to profile to clear popups...")
+        await page.goto(f"https://pixai.art/@{URL_USERNAME}/artworks", timeout=30000)
         await page.wait_for_timeout(1000)
         await page.locator("button[aria-haspopup='true']").first.click()
         await page.wait_for_timeout(300)
         await page.get_by_role("menuitem", name="Log out").click()
-        print("[+] Logged out successfully")
+        cprint_auto("[+] Logged out successfully")
         await page.wait_for_timeout(500)
         return True
         
     except Exception as e:
-        print(f"[-] Logout failed: {e}")
+        cprint_auto(f"[-] Logout failed: {e}")
         return False
 
 async def create_accounts_multi_browser_async(accounts_count: int, browsers_count: int):
@@ -215,51 +242,88 @@ async def create_accounts_multi_browser_async(accounts_count: int, browsers_coun
     accounts_per_browser = accounts_count // browsers_count
     remainder = accounts_count % browsers_count
     
-    print(f"[+] Starting multi-browser account creation")
-    print(f"[+] Total accounts: {accounts_count}")
-    print(f"[+] Browsers: {browsers_count}")
-    print(f"[+] Accounts per browser: {accounts_per_browser}")
-    print(f"[+] Remainder: {remainder}")
+    cprint_auto(f"[+] Starting multi-browser account creation")
+    cprint_auto(f"[+] Total accounts: {accounts_count}")
+    cprint_auto(f"[+] Browsers: {browsers_count}")
+    cprint_auto(f"[+] Accounts per browser: {accounts_per_browser}")
+    cprint_auto(f"[+] Remainder: {remainder}")
     
     created_accounts = []
     failed_accounts = []
     
-    async def browser_worker(browser_index: int, accounts_to_create: int):
+    async def browser_worker(browser_index: int, accounts_to_create: int, proxy: Optional[str] = None):
         nonlocal created_accounts, failed_accounts
         
-        print(f"[+] Browser {browser_index + 1}: Starting with {accounts_to_create} accounts")
+        cprint_auto(f"[+] Browser {browser_index + 1}: Starting with {accounts_to_create} accounts")
         
         async with async_playwright() as pw:
-            browser = await pw.chromium.launch(headless=headless, args=BROWSER_ARGS)
-            context = await browser.new_context()
-            page = await context.new_page()
+            proxies_cycle: List[str] = []
+            if proxy:
+                proxies_cycle = [proxy]
+            elif proxies_list:
+                proxies_cycle = proxies_list[:]
+
+            current_proxy_index = 0
+
+            async def launch_with_proxy(proxy_url: Optional[str]):
+                launch_kwargs = {"headless": headless, "args": BROWSER_ARGS}
+                if proxy_url:
+                    launch_kwargs["proxy"] = {"server": proxy_url}
+                    cprint_auto(f"[>] Browser {browser_index + 1}: Using proxy {proxy_url}")
+                br = await pw.chromium.launch(**launch_kwargs)
+                ctx = await br.new_context()
+                pg = await ctx.new_page()
+                return br, ctx, pg
+
+            current_proxy = proxies_cycle[current_proxy_index] if proxies_cycle else None
+            browser, context, page = await launch_with_proxy(current_proxy)
             
             try:
-                for i in range(accounts_to_create):
+                i = 0
+                while i < accounts_to_create:
                     email = generate_email(EMAIL_DOMAIN)
                     password = generate_password()
                     
-                    print(f"[+] Browser {browser_index + 1}: Creating account {i+1}/{accounts_to_create}: {email}")
+                    cprint_auto(f"[+] Browser {browser_index + 1}: Creating account {i+1}/{accounts_to_create}: {email}")
                     
                     try:
-                        success = await create_account_once_async(pw, context, page, email, password)
+                        success, rate_limited = await create_account_once_async(pw, context, page, email, password)
                         
                         if success:
                             if send_account_to_api(email, password):
                                 created_accounts.append({"email": email, "password": password})
-                                print(f"[+] Browser {browser_index + 1}: Account {email} created and sent to API")
+                                cprint_auto(f"[+] Browser {browser_index + 1}: Account {email} created and sent to API")
                                 
                                 await logout_if_possible_async(page)
+                                i += 1
                             else:
-                                print(f"[-] Browser {browser_index + 1}: Failed to send {email} to API")
+                                cprint_auto(f"[-] Browser {browser_index + 1}: Failed to send {email} to API")
                                 failed_accounts.append({"email": email, "password": password})
+                                i += 1
+                        elif rate_limited:
+                            cprint_auto("[!] Rate limited. Rotating proxy and retrying this account...")
+                            try:
+                                await context.close()
+                                await browser.close()
+                            except Exception:
+                                pass
+                            if proxies_cycle:
+                                current_proxy_index = (current_proxy_index + 1) % len(proxies_cycle)
+                                current_proxy = proxies_cycle[current_proxy_index]
+                            else:
+                                current_proxy = None
+                            browser, context, page = await launch_with_proxy(current_proxy)
+                            await asyncio.sleep(3)
+                            continue
                         else:
-                            print(f"[-] Browser {browser_index + 1}: Failed to create {email}")
+                            cprint_auto(f"[-] Browser {browser_index + 1}: Failed to create {email}")
                             failed_accounts.append({"email": email, "password": password})
+                            i += 1
                             
                     except Exception as e:
-                        print(f"[-] Browser {browser_index + 1}: Error creating account: {e}")
+                        cprint_auto(f"[-] Browser {browser_index + 1}: Error creating account: {e}")
                         failed_accounts.append({"email": email, "password": password})
+                        i += 1
                     
                     await asyncio.sleep(2)
                     
@@ -271,53 +335,112 @@ async def create_accounts_multi_browser_async(accounts_count: int, browsers_coun
                 print(f"[+] Browser {browser_index + 1}: Completed")
     
     tasks = []
+
+    proxies_list: List[str] = globals().get("PROXIES", []) or []
     for browser_index in range(browsers_count):
         accounts_for_this_browser = accounts_per_browser + (1 if browser_index < remainder else 0)
         if accounts_for_this_browser > 0:
-            task = asyncio.create_task(browser_worker(browser_index, accounts_for_this_browser))
+            proxy_for_browser: Optional[str] = None
+            if proxies_list:
+                proxy_for_browser = proxies_list[browser_index % len(proxies_list)]
+            task = asyncio.create_task(browser_worker(browser_index, accounts_for_this_browser, proxy_for_browser))
             tasks.append(task)
     
-    print(f"[+] Starting {len(tasks)} browsers in parallel...")
+    cprint_auto(f"[+] Starting {len(tasks)} browsers in parallel...")
     await asyncio.gather(*tasks, return_exceptions=True)
-    print(f"\n[+] Multi-browser creation completed!")
-    print(f"[+] Successfully created: {len(created_accounts)}")
-    print(f"[+] Failed: {len(failed_accounts)}")
-    print(f"[+] Success rate: {(len(created_accounts)/accounts_count)*100:.1f}%")
+    cprint_auto(f"\n[+] Multi-browser creation completed!")
+    cprint_auto(f"[+] Successfully created: {len(created_accounts)}")
+    cprint_auto(f"[+] Failed: {len(failed_accounts)}")
+    cprint_auto(f"[+] Success rate: {(len(created_accounts)/accounts_count)*100:.1f}%")
     
-    return len(created_accounts)
+    return {
+        "created_count": len(created_accounts),
+        "failed_count": len(failed_accounts),
+        "created": created_accounts,
+        "failed": failed_accounts,
+    }
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="PixAI account creator (multi-browser)")
+    parser.add_argument("--accounts", type=int, required=True, help="Total number of accounts to create")
+    parser.add_argument("--browsers", type=int, required=True, help="Number of parallel browser instances")
+    parser.add_argument("--headless", type=str, default=os.getenv("HEADLESS", str(HEADLESS).lower()), help="true/false to run headless")
+    parser.add_argument("--api-url", type=str, default=os.getenv("API_URL", API_URL), help="API URL to send created accounts")
+    parser.add_argument("--email-domain", type=str, default=os.getenv("EMAIL_DOMAIN", EMAIL_DOMAIN), help="Email domain for generated accounts")
+    parser.add_argument("--json", action="store_true", help="Print JSON summary at the end")
+    parser.add_argument("--csv", type=str, default=None, help="Optional CSV path to save created accounts")
+    parser.add_argument("--proxies-file", type=str, default=os.getenv("PROXIES_FILE", DEFAULT_PROXIES_FILE), help="Path to file with proxies, one per line (e.g., http://user:pass@host:port)")
+    parser.add_argument("--proxy", type=str, default=os.getenv("PROXY", None), help="Single proxy URL to use (overrides proxies file for that browser)")
+    return parser.parse_args()
+
+def load_proxies(proxies_file: Optional[str]) -> List[str]:
+    proxies: List[str] = []
+    if not proxies_file:
+        return proxies
+    try:
+        with open(proxies_file, "r", encoding="utf-8") as f:
+            for line in f:
+                url = line.strip()
+                if not url or url.startswith("#"):
+                    continue
+                proxies.append(url)
+    except Exception as e:
+        print(f"[!] Failed to read proxies file: {e}")
+    return proxies
 
 def main():
-    import sys
-    
-    if HEADLESS:
-        print("[DEBUG] Browser will be headless")
-    else:
-        print("[DEBUG] Browser will be visible")
-    
-    accounts_count = None
-    browsers_count = None
-    
-    for arg in sys.argv:
-        if arg.startswith('--accounts='):
-            accounts_count = int(arg.split('=')[1])
-        elif arg.startswith('--browsers='):
-            browsers_count = int(arg.split('=')[1])
-    
-    if not accounts_count or not browsers_count:
-        print("Usage: python3 account_creator.py --accounts=N --browsers=M")
-        print("Example: python3 account_creator.py --accounts=12 --browsers=3")
-        sys.exit(1)
+    global API_URL, EMAIL_DOMAIN, HEADLESS, PROXIES, URL_USERNAME
+    args = parse_args()
+
+    env_browser_args = os.getenv("BROWSER_ARGS")
+    if env_browser_args:
+        parsed = [flag.strip() for flag in env_browser_args.split(",") if flag.strip()]
+        if parsed:
+            BROWSER_ARGS.clear()
+            BROWSER_ARGS.extend(parsed)
+
+    API_URL = args.api_url
+    EMAIL_DOMAIN = args.email_domain
+    HEADLESS = str(args.headless).strip().lower() in ("1", "true", "yes", "on")
+    PROXIES = load_proxies(args.proxies_file)
+    if args.proxy:
+        PROXIES = [args.proxy] + PROXIES
+
+    cprint_auto(f"[DEBUG] Headless: {HEADLESS}")
+    if PROXIES:
+        cprint_auto(f"[DEBUG] Proxies loaded: {len(PROXIES)}")
     
     try:
-        import asyncio
-        
-        print(f"[DEBUG] Multi-browser mode: {accounts_count} accounts, {browsers_count} browsers")
-        asyncio.run(create_accounts_multi_browser_async(accounts_count, browsers_count))
-            
+        cprint_auto(f"[DEBUG] Multi-browser mode: {args.accounts} accounts, {args.browsers} browsers")
+        result = asyncio.run(create_accounts_multi_browser_async(args.accounts, args.browsers))
+
+        if args.csv:
+            try:
+                os.makedirs(os.path.dirname(args.csv), exist_ok=True) if os.path.dirname(args.csv) else None
+                with open(args.csv, "w", newline="", encoding="utf-8") as csvfile:
+                    writer = csv.writer(csvfile)
+                    writer.writerow(["email", "password", "status"])
+                    for acc in result["created"]:
+                        writer.writerow([acc["email"], acc["password"], "created"]) 
+                    for acc in result["failed"]:
+                        writer.writerow([acc["email"], acc["password"], "failed"]) 
+                cprint_auto(f"[+] Saved results to CSV: {args.csv}")
+            except Exception as e:
+                cprint_auto(f"[!] Failed to write CSV: {e}")
+
+        if args.json:
+            print(json.dumps({
+                "created": result["created_count"],
+                "failed": result["failed_count"],
+                "total": args.accounts,
+                "browsers": args.browsers,
+                "api_url": API_URL,
+                "email_domain": EMAIL_DOMAIN,
+            }, indent=2))
     except KeyboardInterrupt:
-        print("[!] Stopped by user")
+        cprint_auto("[!] Stopped by user")
     except Exception as e:
-        print(f"[-] Fatal error: {e}")
+        cprint_auto(f"[-] Fatal error: {e}")
 
 if __name__ == "__main__":
     main()
