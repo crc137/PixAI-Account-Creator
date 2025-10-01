@@ -12,7 +12,7 @@ from playwright.async_api import async_playwright
 
 # Settings
 API_URL = "https://pixai.coonlink.com/api/v1/boostlikes/accountcreator-add" # change to your API URL
-HEADLESS = False # True - headless, False - visible
+HEADLESS = True # True - headless, False - visible
 BROWSER_ARGS = ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"] # add your own browser arguments
 EMAIL_DOMAIN = "coonlink.com" # change to your domain
 
