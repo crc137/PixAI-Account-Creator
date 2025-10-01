@@ -14,12 +14,12 @@ from typing import List, Dict, Optional, Tuple
 from playwright.async_api import async_playwright
 import config as cfg
 
-GREEN = '\033[0;32m'
-RED = '\033[0;31m'
-BLUE = '\033[0;34m'
-YELLOW = '\033[0;33m'
-CYAN = '\033[0;36m'
-NC = '\033[0m'
+GREEN = getattr(cfg, "GREEN", '\033[0;32m')
+RED = getattr(cfg, "RED", '\033[0;31m')
+BLUE = getattr(cfg, "BLUE", '\033[0;34m')
+YELLOW = getattr(cfg, "YELLOW", '\033[0;33m')
+CYAN = getattr(cfg, "CYAN", '\033[0;36m')
+NC = getattr(cfg, "NC", '\033[0m')
 
 def cprint_auto(msg: str, end: str = '\n') -> None:
     color = NC
@@ -45,6 +45,13 @@ BROWSER_ARGS = list(getattr(cfg, "BROWSER_ARGS", ["--no-sandbox", "--disable-set
 EMAIL_DOMAIN = getattr(cfg, "EMAIL_DOMAIN", "coonlink.com")
 DEFAULT_PROXIES_FILE = getattr(cfg, "PROXIES_FILE", "")
 URL_USERNAME = getattr(cfg, "URL_USERNAME", "crc137")
+ACCOUNT_CREATION_DELAY = getattr(cfg, "ACCOUNT_CREATION_DELAY", 2.0)
+FORM_FIELD_DELAY = getattr(cfg, "FORM_FIELD_DELAY", 300)
+FORM_SUBMISSION_DELAY = getattr(cfg, "FORM_SUBMISSION_DELAY", 1000)
+PAGE_LOAD_DELAY = getattr(cfg, "PAGE_LOAD_DELAY", 500)
+RETRY_DELAY = getattr(cfg, "RETRY_DELAY", 5.0)
+RATE_LIMIT_DELAY = getattr(cfg, "RATE_LIMIT_DELAY", 15.0)
+MAX_RETRY_ATTEMPTS = getattr(cfg, "MAX_RETRY_ATTEMPTS", 3)
 
 def get_env_bool(name: str, default: str = "false") -> bool:
     value = os.getenv(name, default).strip().lower()
@@ -79,7 +86,7 @@ async def create_account_once_async(pw, context, page, email: str, password: str
     try:
         await page.goto("https://pixai.art/", timeout=60000)
         
-        max_attempts = 3
+        max_attempts = MAX_RETRY_ATTEMPTS
         
         for attempt in range(max_attempts):
             cprint_auto(f"[+] Account creation attempt {attempt + 1}/{max_attempts}")
@@ -87,14 +94,14 @@ async def create_account_once_async(pw, context, page, email: str, password: str
             try:
                 try:
                     await page.get_by_role("button", name="Sign in").click()
-                    await page.wait_for_timeout(300)
+                    await page.wait_for_timeout(FORM_FIELD_DELAY)
                 except Exception as e:
                     cprint_auto(f"[-] Could not find Sign in button: {e}")
                     cprint_auto("[+] Refreshing page and trying again...")
                     await page.reload()
-                    await page.wait_for_timeout(1000)
+                    await page.wait_for_timeout(FORM_SUBMISSION_DELAY)
                     await page.get_by_role("button", name="Sign in").click()
-                    await page.wait_for_timeout(300)
+                    await page.wait_for_timeout(FORM_FIELD_DELAY)
 
                 try:
                     await page.get_by_role("button", name="Continue with Email", exact=False).click()
@@ -112,28 +119,28 @@ async def create_account_once_async(pw, context, page, email: str, password: str
                 cprint_auto("[+] Filling email field for registration...")
                 if await page.get_by_role("textbox", name="Email").count():
                     await page.get_by_role("textbox", name="Email").click()
-                    await page.wait_for_timeout(300)
+                    await page.wait_for_timeout(FORM_FIELD_DELAY)
                     await page.get_by_role("textbox", name="Email").press("ControlOrMeta+a")
                     await page.wait_for_timeout(100)
                     await page.get_by_role("textbox", name="Email").fill(email)
-                    await page.wait_for_timeout(500)
+                    await page.wait_for_timeout(PAGE_LOAD_DELAY)
                     cprint_auto(f"[+] Email filled: {email}")
                 else:
                     await page.fill("input[type='email']", email)
-                    await page.wait_for_timeout(500)
+                    await page.wait_for_timeout(PAGE_LOAD_DELAY)
 
                 cprint_auto("[+] Filling password field for registration...")
                 if await page.get_by_role("textbox", name="Password").count():
                     await page.get_by_role("textbox", name="Password").click()
-                    await page.wait_for_timeout(300)
+                    await page.wait_for_timeout(FORM_FIELD_DELAY)
                     await page.get_by_role("textbox", name="Password").press("ControlOrMeta+a")
                     await page.wait_for_timeout(100)
                     await page.get_by_role("textbox", name="Password").fill(password)
-                    await page.wait_for_timeout(500)
+                    await page.wait_for_timeout(PAGE_LOAD_DELAY)
                     cprint_auto("[+] Password filled")
                 else:
                     await page.fill("input[type='password']", password)
-                    await page.wait_for_timeout(500)
+                    await page.wait_for_timeout(PAGE_LOAD_DELAY)
 
                 cprint_auto("[+] Verifying registration fields are filled...")
                 try:
@@ -144,13 +151,13 @@ async def create_account_once_async(pw, context, page, email: str, password: str
                     
                     if not email_value or not password_value:
                         cprint_auto("[-] Registration fields are empty, retrying...")
-                        await page.wait_for_timeout(1000)
+                        await page.wait_for_timeout(FORM_SUBMISSION_DELAY)
                         continue
                 except Exception as e:
                     cprint_auto(f"[-] Could not verify registration fields: {e}")
                 
                 cprint_auto("[+] Waiting before registration submission...")
-                await page.wait_for_timeout(1000)
+                await page.wait_for_timeout(FORM_SUBMISSION_DELAY)
 
                 cprint_auto("[+] Submitting registration...")
                 if await page.get_by_role("button", name="Sign Up").count():
@@ -210,7 +217,7 @@ async def create_account_once_async(pw, context, page, email: str, password: str
                 print(f"[-] Account creation attempt {attempt + 1} failed: {e}")
                 if attempt < max_attempts - 1:
                     cprint_auto(f"[+] Waiting 5 seconds before retry...")
-                    await asyncio.sleep(5)
+                    await asyncio.sleep(RETRY_DELAY)
                 else:
                     cprint_auto("[-] All account creation attempts failed")
                     return False, False
@@ -325,7 +332,7 @@ async def create_accounts_multi_browser_async(accounts_count: int, browsers_coun
                         failed_accounts.append({"email": email, "password": password})
                         i += 1
                     
-                    await asyncio.sleep(2)
+                    await asyncio.sleep(ACCOUNT_CREATION_DELAY)
                     
             except Exception as e:
                 print(f"[-] Browser {browser_index + 1}: Fatal error: {e}")

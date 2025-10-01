@@ -8,12 +8,12 @@ import os
 import argparse
 import json
 
-GREEN = '\033[0;32m'
-RED = '\033[0;31m'
-BLUE = '\033[0;34m'
-YELLOW = '\033[0;33m'
-CYAN = '\033[0;36m'
-NC = '\033[0m'
+GREEN = getattr(cfg, "GREEN", '\033[0;32m')
+RED = getattr(cfg, "RED", '\033[0;31m')
+BLUE = getattr(cfg, "BLUE", '\033[0;34m')
+YELLOW = getattr(cfg, "YELLOW", '\033[0;33m')
+CYAN = getattr(cfg, "CYAN", '\033[0;36m')
+NC = getattr(cfg, "NC", '\033[0m')
 
 try:
     import GPUtil
