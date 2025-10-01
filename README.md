@@ -131,7 +131,7 @@ MAX_RETRY_ATTEMPTS = 3
 
 Set environment variables to override config.py defaults:
 
-    ```bash
+```bash
 export API_URL="https://your-api.com/endpoint"
 export EMAIL_DOMAIN="yourdomain.com"
 export HEADLESS="false"
