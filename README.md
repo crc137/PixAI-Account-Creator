@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://github.com/coonlink">
-    <img width="50px" src="https://raw.coonlink.com/cloud/PixAI Daily/logo.svg" />
+    <img width="90px" src="https://raw.coonlink.com/cloud/PixAI Daily/logo.svg" />
   </a>
   <h1>PixAI Account Creator</h1>
 </div>
