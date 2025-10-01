@@ -1,4 +1,0 @@
-playwright
-requests
-psutil
-GPUtil
