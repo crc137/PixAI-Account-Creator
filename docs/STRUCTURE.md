@@ -35,7 +35,7 @@ PixAI-Account-Creator/
 └── .gitignore                   # Git ignore rules
 ```
 
-##Module Responsibilities
+## Module Responsibilities
 
 ### Core (`src/core/`)
 - **`config.py`** - Centralized configuration (URLs, settings, colors)
@@ -52,7 +52,7 @@ PixAI-Account-Creator/
 - **`preview_browser.py`** - Browser preview with UI enhancements
 - **`install.sh`** - Automated installation script
 
-##Usage
+## Usage
 
 ### Direct Script Execution
 ```bash
@@ -76,7 +76,7 @@ from src.ui.ui_enhancer import ui_enhancer
 from src.core.version import get_version
 ```
 
-##Benefits
+## Benefits
 
 1. **Clean Separation** - Each module has a specific purpose
 2. **Easy Maintenance** - Changes isolated to specific modules
