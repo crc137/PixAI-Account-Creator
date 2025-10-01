@@ -12,7 +12,7 @@ from playwright.async_api import async_playwright
 
 # Settings
 API_URL = "https://pixai.coonlink.com/api/v1/boostlikes/accountcreator-add" # change to your API URL
-HEADLESS = False # True - headless, False - visible
+HEADLESS = True # True - headless, False - visible
 BROWSER_ARGS = ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"] # add your own browser arguments
 EMAIL_DOMAIN = "coonlink.com" # change to your domain
 
@@ -274,7 +274,7 @@ async def create_accounts_multi_browser_async(accounts_count: int, browsers_coun
     for browser_index in range(browsers_count):
         accounts_for_this_browser = accounts_per_browser + (1 if browser_index < remainder else 0)
         if accounts_for_this_browser > 0:
-            task = browser_worker(browser_index, accounts_for_this_browser)
+            task = asyncio.create_task(browser_worker(browser_index, accounts_for_this_browser))
             tasks.append(task)
     
     print(f"[+] Starting {len(tasks)} browsers in parallel...")
