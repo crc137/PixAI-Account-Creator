@@ -15,35 +15,28 @@ chmod +x src/scripts/install.sh
 
 ## Usage
 
-### Check system
-
 ```bash
+# Check system
 python3 system_check.py
-```
 
-### Create accounts
-
-```bash
+# Create accounts
 python3 account_creator.py --accounts 10 --browsers 2
-```
 
-### Preview browser
-
-```bash
+# Preview browser
 python3 preview_browser.py --headless=false
 ```
 
 ## Arguments
 
-| Argument         | Description        | Example                                |
-| ---------------- | ------------------ | -------------------------------------- |
-| `--accounts`     | Number of accounts | `--accounts 10`                        |
-| `--browsers`     | Parallel browsers  | `--browsers 2`                         |
-| `--headless`     | Headless mode      | `--headless false`                     |
-| `--proxy`        | Single proxy       | `--proxy "http://user:pass@host:port"` |
-| `--proxies-file` | Proxy file         | `--proxies-file "proxies.txt"`         |
-| `--csv`          | Save to CSV        | `--csv "results.csv"`                  |
-| `--json`         | JSON output        | `--json`                               |
+| Argument | Description | Example |
+|----------|-------------|---------|
+| `--accounts` | Number of accounts | `--accounts 10` |
+| `--browsers` | Parallel browsers | `--browsers 2` |
+| `--headless` | Headless mode | `--headless false` |
+| `--proxy` | Single proxy | `--proxy "http://user:pass@host:port"` |
+| `--proxies-file` | Proxy file | `--proxies-file "proxies.txt"` |
+| `--csv` | Save to CSV | `--csv "results.csv"` |
+| `--json` | JSON output | `--json` |
 
 ## Configuration
 
@@ -58,22 +51,20 @@ HEADLESS = False
 ## Troubleshooting
 
 **Playwright issues:**
-
 ```bash
 python3 system_check.py --auto-install
 ```
 
 **Rate limiting:**
-
-* Use proxies
-* Increase delays in config
-* Reduce browser count
+- Use proxies
+- Increase delays in config
+- Reduce browser count
 
 ## Requirements
 
-* Python 3.8+
-* 4GB+ RAM
-* 2+ CPU cores
+- Python 3.8+
+- 4GB+ RAM
+- 2+ CPU cores
 
 ## License
 
