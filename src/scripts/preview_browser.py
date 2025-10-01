@@ -36,29 +36,24 @@ async def preview_browser():
     print(f"{GREEN}[+] Press Ctrl+C to close{NC}")
     
     async with async_playwright() as pw:
-        # Launch browser
         browser = await pw.chromium.launch(
             headless=headless,
             args=cfg.BROWSER_ARGS
         )
         
-        # Create context and page
         context = await browser.new_context()
         page = await context.new_page()
         
         try:
-            # Navigate to URL
             print(f"{GREEN}[+] Navigating to {args.url}...{NC}")
             await page.goto(args.url, timeout=30000)
             
-            # Apply UI enhancements
             print(f"{GREEN}[+] Applying UI enhancements...{NC}")
             await ui_enhancer.enhance_page(page)
             
             print(f"{GREEN}[+] Browser ready! You can now see the enhanced interface.{NC}")
             print(f"{GREEN}[+] Press Ctrl+C to close the browser.{NC}")
             
-            # Keep browser open until user closes it
             try:
                 while True:
                     await asyncio.sleep(1)
