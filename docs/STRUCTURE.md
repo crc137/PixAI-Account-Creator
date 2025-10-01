@@ -1,6 +1,6 @@
 # PixAI Account Creator - Project Structure
 
-##Directory Structure
+## Directory Structure
 
 ```
 PixAI-Account-Creator/
