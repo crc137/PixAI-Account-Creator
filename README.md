@@ -96,19 +96,57 @@ BROWSER_ARGS = [
 
 # Optional path to proxies file
 PROXIES_FILE = "proxies.txt"
+
+# =============================================================================
+# TIMING SETTINGS (USE AT YOUR OWN RISK!)
+# =============================================================================
+
+# WARNING: These settings control automation speed. Faster settings may trigger
+# rate limits or get detected as bot activity. Test carefully and adjust based
+# on your internet connection and server response times.
+
+# Delay between account creation attempts (seconds)
+ACCOUNT_CREATION_DELAY = 2.0
+
+# Delay between form field interactions (milliseconds)
+FORM_FIELD_DELAY = 300
+
+# Delay before form submission (milliseconds)
+FORM_SUBMISSION_DELAY = 1000
+
+# Delay after page load (milliseconds)
+PAGE_LOAD_DELAY = 500
+
+# Delay between retry attempts (seconds)
+RETRY_DELAY = 5.0
+
+# Delay when rate limited (seconds)
+RATE_LIMIT_DELAY = 15.0
+
+# Maximum retry attempts per account
+MAX_RETRY_ATTEMPTS = 3
 ```
 
 #### Method 2: Environment Variables
 
 Set environment variables to override config.py defaults:
 
-```bash
+    ```bash
 export API_URL="https://your-api.com/endpoint"
 export EMAIL_DOMAIN="yourdomain.com"
 export HEADLESS="false"
 export PROXY="http://user:pass@proxy:port"
 export PROXIES_FILE="proxies.txt"
 export BROWSER_ARGS="--no-sandbox,--disable-gpu,--disable-dev-shm-usage"
+
+# Timing settings (use with caution!)
+export ACCOUNT_CREATION_DELAY="1.5"
+export FORM_FIELD_DELAY="200"
+export FORM_SUBMISSION_DELAY="800"
+export PAGE_LOAD_DELAY="300"
+export RETRY_DELAY="3.0"
+export RATE_LIMIT_DELAY="10.0"
+export MAX_RETRY_ATTEMPTS="5"
 ```
 
 #### Method 3: Command-line Arguments (Highest Priority)
@@ -121,7 +159,7 @@ All settings can be overridden via CLI arguments (see Usage section below).
 
 Run the system analysis to get optimal browser recommendations:
 
-```bash
+    ```bash
 # Basic system check
 python3 system_check.py
 
@@ -224,3 +262,40 @@ Creates a CSV file with columns: `email`, `password`, `status`
 python3 account_creator.py --accounts 10 --browsers 2 --json
 ```
 Outputs JSON summary with creation statistics.
+
+####Timing Configuration (Advanced Users Only)
+
+**WARNING:** These settings control automation speed. Faster settings may trigger rate limits or get detected as bot activity. Test carefully and adjust based on your internet connection and server response times.
+
+**Available Timing Settings:**
+- `ACCOUNT_CREATION_DELAY` - Delay between account creation attempts (seconds)
+- `FORM_FIELD_DELAY` - Delay between form field interactions (milliseconds)
+- `FORM_SUBMISSION_DELAY` - Delay before form submission (milliseconds)
+- `PAGE_LOAD_DELAY` - Delay after page load (milliseconds)
+- `RETRY_DELAY` - Delay between retry attempts (seconds)
+- `RATE_LIMIT_DELAY` - Delay when rate limited (seconds)
+- `MAX_RETRY_ATTEMPTS` - Maximum retry attempts per account
+
+**Example - Faster Settings (Use at your own risk!):**
+```python
+# In config.py
+ACCOUNT_CREATION_DELAY = 1.0  # Faster account creation
+FORM_FIELD_DELAY = 150        # Faster form filling
+FORM_SUBMISSION_DELAY = 500    # Faster submission
+PAGE_LOAD_DELAY = 200          # Faster page processing
+RETRY_DELAY = 2.0             # Faster retries
+RATE_LIMIT_DELAY = 8.0        # Shorter rate limit wait
+MAX_RETRY_ATTEMPTS = 5        # More retry attempts
+```
+
+**Example - Slower Settings (More stable):**
+```python
+# In config.py
+ACCOUNT_CREATION_DELAY = 5.0  # Slower, more human-like
+FORM_FIELD_DELAY = 800        # More realistic typing
+FORM_SUBMISSION_DELAY = 2000  # Longer form review
+PAGE_LOAD_DELAY = 1000        # More page processing time
+RETRY_DELAY = 10.0           # Longer retry delays
+RATE_LIMIT_DELAY = 30.0      # Longer rate limit wait
+MAX_RETRY_ATTEMPTS = 2       # Fewer retry attempts
+```
