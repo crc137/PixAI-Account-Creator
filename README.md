@@ -46,7 +46,7 @@ Follow these steps to get PixAI-Account-Creator up and running on your local mac
 3.  **Install Playwright Browser Binaries:**
     Playwright requires browser binaries (like Chromium, Firefox, WebKit). Install them with:
     ```bash
-    playwright install
+    playwright install && playwright install-deps
     ```
 
 ### Configuration (Required)
