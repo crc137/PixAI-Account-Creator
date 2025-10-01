@@ -56,9 +56,8 @@ Follow these steps to get PixAI-Account-Creator up and running on your local mac
 Before running, you **MUST** configure the following settings in the `account_creator.py` script:
 
 ```python
-# Настройки
 API_URL = "https://pixai.coonlink.com/api/v1/boostlikes/accountcreator-add"  # YOUR API URL
-HEADLESS = False  # True - headless, False - visible browser
+HEADLESS = True  # True - headless, False - visible browser
 BROWSER_ARGS = ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
 EMAIL_DOMAIN = "coonlink.com"  # Your domain for email generation
 ```
