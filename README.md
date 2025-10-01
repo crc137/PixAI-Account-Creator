@@ -3,6 +3,8 @@
 Welcome to PixAI-Account-Creator, your go-to Python automation tool for effortlessly generating multiple accounts on the PixAI platform!
 Streamline your account provisioning process, integrate new accounts with external systems, and save valuable time.
 
+![img](https://raw.coonlink.com/cloud/photo_5974064291013316193_x.jpg)
+
 ## Features
 
 This project is packed with features designed to make mass account creation a breeze:
