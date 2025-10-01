@@ -3,7 +3,6 @@
 A system for automatically creating PixAI accounts.
 
 ## Installation
-
 ### 1. Download the files
 
 Copy the project folder to your computer.
