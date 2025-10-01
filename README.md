@@ -36,7 +36,7 @@ Follow these steps to get PixAI-Account-Creator up and running on your local mac
 
 1.  **Clone the Repository:**
     ```bash
-    git clone https://github.com/your-username/PixAI-Account-Creator.git
+    git clone https://github.com/crc137/PixAI-Account-Creator.git
     cd PixAI-Account-Creator
     ```
 2.  **Install Python Dependencies:**
@@ -49,12 +49,22 @@ Follow these steps to get PixAI-Account-Creator up and running on your local mac
     playwright install
     ```
 
-### Configuration (Optional but Recommended)
+### Configuration (Required)
 
-Before running, you might want to adjust settings directly within the `account_creator.py` script, such as:
-*   `API_URL`: Your external API endpoint for receiving account data.
-*   `HEADLESS`: Set to `False` to watch the browser automation in action.
-*   `EMAIL_DOMAIN`: The domain for generated email addresses.
+Before running, you **MUST** configure the following settings in the `account_creator.py` script:
+
+```python
+# Настройки
+API_URL = "https://pixai.coonlink.com/api/v1/boostlikes/accountcreator-add"  # YOUR API URL
+HEADLESS = False  # True - headless, False - visible browser
+BROWSER_ARGS = ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
+EMAIL_DOMAIN = "your-domain.com"  # Your domain for email generation
+```
+
+**Important Settings:**
+*   `API_URL`: **REQUIRED** - Your external API endpoint for receiving account data
+*   `HEADLESS`: Set to `False` to watch the browser automation in action
+*   `EMAIL_DOMAIN`: The domain for generated email addresses
 
 ### Running the Creator
 
@@ -70,11 +80,14 @@ Before running, you might want to adjust settings directly within the `account_c
 
     ```bash
     # Example: Create 10 accounts using 2 parallel browser instances
-    python account_creator.py --accounts 10 --parallel 2
+    python account_creator.py --accounts=10 --browsers=2
 
-    # Example: Create 5 accounts in visible browser mode
-    python account_creator.py --accounts 5 --headless False
+    # Example: Create 5 accounts with 1 browser
+    python account_creator.py --accounts=5 --browsers=1
     ```
-    *   `--accounts <NUMBER>`: The total number of PixAI accounts to create.
-    *   `--parallel <NUMBER>`: The number of browser instances to run concurrently.
-    *   `--headless <True/False>`: Run browsers in headless (background) mode or visible mode. (Overrides script configuration)
+    
+    **Command Parameters:**
+    *   `--accounts=N`: The total number of PixAI accounts to create
+    *   `--browsers=N`: The number of browser instances to run concurrently
+    
+    **Important:** Make sure you have configured the `API_URL` in the script before running, otherwise accounts won't be saved to your server!
