@@ -45,7 +45,7 @@ class UIEnhancer:
             
             return True
         except Exception as e:
-            print(f"[-] UI Enhancement failed: {e}")
+            print(f"{RED}[-] UI Enhancement failed: {e}{NC}")
             return False
 
     async def _set_fonts(self, page) -> None:
@@ -91,11 +91,11 @@ class UIEnhancer:
                 `;
                 document.head.appendChild(fontStyle);
                 
-                console.log('Custom fonts loaded: PhonkSans, Gilroy (Medium/SemiBold/ExtraBold), Hanson');
+                console.log('{GREEN}Custom fonts loaded: PhonkSans, Gilroy (Medium/SemiBold/ExtraBold), Hanson{NC}');
             """)
-            print("[+] Custom fonts loaded: PhonkSans, Gilroy (Medium/SemiBold/ExtraBold), Hanson")
+            print(f"{GREEN}[+] Custom fonts loaded: PhonkSans, Gilroy (Medium/SemiBold/ExtraBold), Hanson{NC}")
         except Exception as e:
-            print(f"[-] Font loading failed: {e}")
+            print(f"{RED}[-] Font loading failed: {e}{NC}")
 
     async def _set_logo(self, page) -> None:
         try:
@@ -115,7 +115,7 @@ class UIEnhancer:
                     link.href = 'data:image/svg+xml,{encoded_svg}';
                     document.head.appendChild(link);
                 """)
-                print("[+] SVG logo loaded")
+                print(f"{GREEN}[+] SVG logo loaded{NC}")
                 return
 
             ico_content = await self._download_logo(self.logo_ico_url)
@@ -127,7 +127,7 @@ class UIEnhancer:
                     link.href = 'data:image/x-icon;base64,{ico_content}';
                     document.head.appendChild(link);
                 """)
-                print("[+] ICO logo loaded")
+                print(f"{GREEN}[+] ICO logo loaded{NC}")
                 return
 
             await page.evaluate("""
@@ -137,9 +137,9 @@ class UIEnhancer:
                 link.href = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🎨</text></svg>';
                 document.head.appendChild(link);
             """)
-            print("[+] Fallback emoji logo set")
+            print(f"{GREEN}[+] Fallback emoji logo set{NC}")
         except Exception as e:
-            print(f"[-] Logo setting failed: {e}")
+            print(f"{RED}[-] Logo setting failed: {e}{NC}")
 
     async def _download_logo(self, url: str) -> Optional[str]:
         try:
@@ -151,7 +151,7 @@ class UIEnhancer:
                     import base64
                     return base64.b64encode(response.content).decode('utf-8')
         except Exception as e:
-            print(f"[-] Failed to download logo from {url}: {e}")
+            print(f"{RED}[-] Failed to download logo from {url}: {e}{NC}")
         return None
 
     async def _set_title(self, page) -> None:
@@ -180,14 +180,14 @@ class UIEnhancer:
                 
                 current_title = await page.evaluate("document.title")
                 if current_title == self.title:
-                    print(f"[+] Page title successfully changed to: {self.title}")
+                    print(f"{GREEN}[+] Page title successfully changed to: {self.title}{NC}")
                     return
                 
                 await asyncio.sleep(0.5)
             
-            print(f"[!] Title change partially successful: {current_title}")
+            print(f"{YELLOW}[!] Title change partially successful: {current_title}{NC}")
         except Exception as e:
-            print(f"[-] Title change failed: {e}")
+            print(f"{RED}[-] Title change failed: {e}{NC}")
 
     async def _add_author_credit(self, page) -> None:
         try:
@@ -294,11 +294,11 @@ class UIEnhancer:
                 `;
                 document.body.appendChild(credit);
                 
-                console.log('PixAI UI elements added successfully');
+                console.log('{GREEN}PixAI UI elements added successfully{NC}');
             """)
-            print(f"[+] Modern title and author added")
+            print(f"{GREEN}[+] Modern title and author added{NC}")
         except Exception as e:
-            print(f"[-] Adding modern UI failed: {e}")
+            print(f"{RED}[-] Adding modern UI failed: {e}{NC}")
 
     async def remove_enhancements(self, page) -> None:
         try:
@@ -310,8 +310,8 @@ class UIEnhancer:
                     if (s.textContent.includes('pixai-credit')) s.remove();
                 });
             """)
-            print("[+] UI enhancements removed")
+            print(f"{GREEN}[+] UI enhancements removed{NC}")
         except Exception as e:
-            print(f"[-] Failed to remove enhancements: {e}")
+            print(f"{RED}[-] Failed to remove enhancements: {e}{NC}")
 
 ui_enhancer = UIEnhancer()
