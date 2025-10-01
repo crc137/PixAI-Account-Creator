@@ -365,7 +365,10 @@ async def create_accounts_multi_browser_async(accounts_count: int, browsers_coun
                 proxies_cycle = PROXIES[:]
                 cprint_auto(f"[DEBUG] Browser {browser_index + 1}: Using {len(proxies_cycle)} proxies from global list")
 
-            current_proxy_index = 0
+            current_proxy_index = browser_index % len(proxies_cycle) if proxies_cycle else 0
+            if proxies_cycle:
+                initial_proxy = proxies_cycle[current_proxy_index]
+                cprint_auto(f"[DEBUG] Browser {browser_index + 1}: Starting with proxy {current_proxy_index + 1}/{len(proxies_cycle)}: {initial_proxy.split(':')[0]}:{initial_proxy.split(':')[1]}")
 
             async def launch_with_proxy(proxy_url: Optional[str]):
                 launch_kwargs = {"headless": headless, "args": BROWSER_ARGS}
