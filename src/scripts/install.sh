@@ -17,7 +17,7 @@ echo -e "${GREEN}[+]${NC} [3/7] Upgrading pip and setuptools..."
 python3 -m pip install --upgrade pip setuptools wheel
 
 echo -e "${GREEN}[+]${NC} [4/7] Installing Python dependencies from requirements.txt..."
-pip install -r requirements.txt
+pip install -r requirements.txt --break-system-packages
 
 echo -e "${BLUE}[>]${NC} [5/7] Verifying GPUtil installation..."
 python3 -c "import GPUtil; print('GPUtil successfully installed:', GPUtil.getGPUs())" || echo -e "${RED}[-]${NC} GPUtil is installed, but no GPU may be detected on this machine."
