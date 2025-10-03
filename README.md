@@ -3,8 +3,9 @@
     <img width="90px" src="https://raw.coonlink.com/cloud/PixAI Daily/logo.svg" />
   </a>
   <h1>PixAI Account Creator</h1>
+  <i> I've built a script and created ~50,000 accounts. If you need accounts for boosting, message me on Telegram. </i>
 </div>
-
+<br />
 Automated PixAI account creation with parallel browser processing.
 
 ![PixAI](https://raw.coonlink.com/cloud/photo_5974064291013316193_x.jpg)
