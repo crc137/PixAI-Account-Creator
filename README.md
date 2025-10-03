@@ -1,14 +1,24 @@
 <div align="center">
   <a href="https://github.com/coonlink">
-    <img width="90px" src="https://raw.coonlink.com/cloud/PixAI Daily/logo.svg" />
+    <img width="90px" src="https://raw.coonlink.com/cloud/PixAI Daily/logo.svg" alt="PixAI Logo" />
   </a>
   <h1>PixAI Account Creator</h1>
-  <i> I've built a script and created ~50,000 accounts. If you need accounts for boosting, message me on Telegram. </i>
-</div>
-<br />
-Automated PixAI account creation with parallel browser processing.
 
-![PixAI](https://raw.coonlink.com/cloud/photo_5974064291013316193_x.jpg)
+[![English](https://img.shields.io/badge/lang-English%20🇺🇸-white)](README.md)
+[![Русский](https://img.shields.io/badge/язык-Русский%20🇷🇺-white)](README.ru.md)
+[![日本語](https://img.shields.io/badge/言語-日本語%20🇯🇵-white)](README.ja.md)
+[![한국어](https://img.shields.io/badge/언어-한국어%20🇰🇷-white)](README.ko.md)
+[![繁體中文](https://img.shields.io/badge/語言-繁體中文%20🇹🇼-white)](README.zh-TW.md)
+
+<i>I've built a script and created ~50,000 accounts. If you need accounts for boosting, message me on Telegram.</i>
+</div>
+
+<br />
+
+<div align="center">
+  <p>Automated PixAI account creation with parallel browser processing.</p>
+  <img width="600" src="https://raw.coonlink.com/cloud/photo_5974064291013316193_x.jpg" alt="Demo of account creation in terminal" />
+</div>
 
 ## Install
 
@@ -18,6 +28,9 @@ cd PixAI-Account-Creator
 chmod +x src/scripts/install.sh
 ./src/scripts/install.sh
 ```
+
+> [!WARNING]  
+> The installer script attempts to install required system packages and Python dependencies. Run it with root privileges if some system packages fail.
 
 ## Usage
 
@@ -34,43 +47,61 @@ python3 preview_browser.py --headless=false
 
 ## Arguments
 
-| Argument | Description | Example |
-|----------|-------------|---------|
-| `--accounts` | Number of accounts | `--accounts 10` |
-| `--browsers` | Parallel browsers | `--browsers 2` |
-| `--headless` | Headless mode | `--headless false` |
-| `--proxy` | Single proxy | `--proxy "http://user:pass@host:port"` |
-| `--proxies-file` | Proxy file | `--proxies-file "proxies.txt"` |
-| `--csv` | Save to CSV | `--csv "results.csv"` |
-| `--json` | JSON output | `--json` |
+| Argument          | Description                              | Example                          |
+|-------------------|------------------------------------------|----------------------------------|
+| `--accounts`      | Number of accounts to create             | `--accounts 10`                  |
+| `--browsers`      | Number of parallel browser instances     | `--browsers 2`                   |
+| `--headless`      | Headless mode (true/false)               | `--headless false`               |
+| `--proxy`         | Single proxy URL                         | `--proxy "http://user:pass@host:port"` |
+| `--proxies-file`  | File with proxies (one per line)         | `--proxies-file "proxies.txt"`   |
+| `--csv`           | Save results to CSV file                 | `--csv "results.csv"`            |
+| `--json`          | Output results as JSON                   | `--json`                         |
 
 ## Configuration
 
-Edit `src/core/config.py` for defaults:
+Defaults live in `src/core/config.py` — edit to fit your environment:
 
 ```python
 API_URL = "https://pixai.coonlink.com/api/v1/boostlikes/accountcreator-add"
 EMAIL_DOMAIN = "coonlink.com"
 HEADLESS = False
+# other settings: delays, timeouts, browser options, captcha-service keys, etc.
 ```
+
+> [!TIP]  
+> If you run into rate-limiting, increase delays and reduce `--browsers`.
 
 ## Troubleshooting
 
-**Playwright issues:**
+**Playwright / browser issues:**
+
 ```bash
 python3 system_check.py --auto-install
 ```
 
-**Rate limiting:**
-- Use proxies
-- Increase delays in config
-- Reduce browser count
+**Common fixes:**
+
+- Ensure Playwright browsers are installed and up-to-date.
+- Use `--headless=false` to visually debug flows.
+- Check proxy validity and format.
+
+**Rate limiting / account blocks:**
+
+- Use residential proxies (rotate per browser).
+- Increase random delays in config.
+- Lower the number of parallel browsers.
+- Add human-like behaviors (random mouse movement, realistic typing delays).
+
+## Security & Ethics Note
+
+This repository automates account creation at scale. Make sure you understand and comply with the Terms of Service of the target platform and all applicable laws. Abuse of automation can lead to IP bans, legal consequences, and account termination.
 
 ## Requirements
 
 - Python 3.8+
-- 4GB+ RAM
-- 2+ CPU cores
+- Playwright (installed via installer script or `pip`)
+- 4GB+ RAM (recommended)
+- 2+ CPU cores (recommended)
 
 ## License
 
