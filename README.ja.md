@@ -15,7 +15,7 @@
 <img alt="repo-language-count" src="https://img.shields.io/github/languages/count/crc137/PixAI-Account-Creator?style=flat&amp;color=0080ff" style="margin: 0px 2px;">
 <img alt="version" src="https://img.shields.io/badge/version-1.0.0-blue" style="margin: 0px 2px;">
 
-<sub><i>スクリプトを作成し、約 ___50,000___ のアカウントを作成しました。ブースト用のアカウントが必要な場合は、___Telegram___ で私にメッセージを送ってください。</i>
+<sub><i>スクリプトを作成し、約 ___50,000___ のアカウントを作成しました。ブースト用のアカウントが必要な場合は、___Telegram___ で私にメッセージを送ってください。</i></sub>
 </div>
 
 <br />
