@@ -101,12 +101,42 @@ python3 system_check.py --auto-install
 
 This repository automates account creation at scale. Make sure you understand and comply with the Terms of Service of the target platform and all applicable laws. Abuse of automation can lead to IP bans, legal consequences, and account termination.
 
-## Requirements
+### Recommended Settings by System
+- **Low-end (4GB RAM, 2 cores)**: 1-2 browsers, 2-5 accounts each
+- **Mid-range (8GB RAM, 4 cores)**: 2-4 browsers, 5-10 accounts each
+- **High-end (16GB+ RAM, 8+ cores)**: 4-8 browsers, 10-20 accounts each
 
-- Python 3.8+
-- Playwright (installed via installer script or `pip`)
-- 4GB+ RAM (recommended)
-- 2+ CPU cores (recommended)
+### Performance Tips
+- Use SSD storage for better I/O performance
+- Close unnecessary applications during account creation
+- Monitor system resources with `htop` or Task Manager
+- Use quality residential proxies
+
+### Minimum Requirements
+- **Python**: 3.8+
+- **RAM**: 4GB+ (recommended)
+- **CPU**: 2+ cores (recommended)
+- **OS**: Linux, macOS, Windows
+- **Playwright** (installed via installer script or `pip`)
+
+### Recommended for High Performance
+- **RAM**: 16GB+
+- **CPU**: 8+ cores
+- **Storage**: SSD recommended
+- **Network**: Stable internet connection
+
+## Future Roadmap
+
+### Planned Features
+- [ ] CAPTCHA solving integration
+- [ ] Advanced proxy management
+- [ ] Account verification workflows
+- [ ] Database integration for account storage
+- [ ] Web dashboard for monitoring
+- [ ] Docker containerization
+- [ ] Cloud deployment support
+- [ ] Telegram integration
+- [ ] Discord integration
 
 ## License
 
