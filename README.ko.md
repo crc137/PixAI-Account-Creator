@@ -10,7 +10,12 @@
 [![한국어](https://img.shields.io/badge/언어-한국어%20🇰🇷-white)](README.ko.md)
 [![繁體中文](https://img.shields.io/badge/語言-繁體中文%20🇹🇼-white)](README.zh-TW.md)
 
-<i>스크립트를 만들었고 ~50,000개의 계정을 생성했습니다. 부스팅을 위한 계정이 필요하시면 Telegram으로 메시지를 보내주세요.</i>
+<img alt="last-commit" src="https://img.shields.io/github/last-commit/crc137/PixAI-Account-Creator?style=flat&amp;logo=git&amp;logoColor=white&amp;color=0080ff" style="margin: 0px 2px;">
+<img alt="repo-top-language" src="https://img.shields.io/github/languages/top/crc137/PixAI-Account-Creator?style=flat&amp;color=0080ff" style="margin: 0px 2px;">
+<img alt="repo-language-count" src="https://img.shields.io/github/languages/count/crc137/PixAI-Account-Creator?style=flat&amp;color=0080ff" style="margin: 0px 2px;">
+<img alt="version" src="https://img.shields.io/badge/version-1.0.0-blue" style="margin: 0px 2px;">
+
+<sub><i>스크립트를 만들었고 __~50,000__ 개의 계정을 생성했습니다. 부스팅을 위한 계정이 필요하시면 __Telegram__ 으로 메시지를 보내주세요.</i></sub>
 </div>
 
 <br />
