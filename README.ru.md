@@ -15,7 +15,7 @@
 <img alt="repo-language-count" src="https://img.shields.io/github/languages/count/crc137/PixAI-Account-Creator?style=flat&amp;color=0080ff" style="margin: 0px 2px;">
 <img alt="version" src="https://img.shields.io/badge/version-1.0.0-blue" style="margin: 0px 2px;">
 
-<sub><i>I've built a script and created ___~50,000___ accounts. If you need accounts for boosting, message me on ___Telegram___. </i></sub>
+<sub><i>Я создал скрипт и зарегистрировал ___~50,000___ аккаунтов. Если вам нужны аккаунты для бустинга, напишите мне в ___Telegram___. </i></sub>
 </div>
 
 <br />
