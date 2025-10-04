@@ -10,7 +10,12 @@
 [![한국어](https://img.shields.io/badge/언어-한국어%20🇰🇷-white)](README.ko.md)
 [![繁體中文](https://img.shields.io/badge/語言-繁體中文%20🇹🇼-white)](README.zh-TW.md)
 
-<i>I've built a script and created ~50,000 accounts. If you need accounts for boosting, message me on Telegram.</i>
+<img alt="last-commit" src="https://img.shields.io/github/last-commit/crc137/PixAI-Account-Creator?style=flat&amp;logo=git&amp;logoColor=white&amp;color=0080ff" style="margin: 0px 2px;">
+<img alt="repo-top-language" src="https://img.shields.io/github/languages/top/crc137/PixAI-Account-Creator?style=flat&amp;color=0080ff" style="margin: 0px 2px;">
+<img alt="repo-language-count" src="https://img.shields.io/github/languages/count/crc137/PixAI-Account-Creator?style=flat&amp;color=0080ff" style="margin: 0px 2px;">
+<img alt="version" src="https://img.shields.io/badge/version-1.0.0-blue" style="margin: 0px 2px;">
+
+<sub>I've built a script and created ___~50,000___ accounts. If you need accounts for boosting, message me on ___Telegram___. </sub>
 </div>
 
 <br />
