@@ -10,7 +10,12 @@
 [![한국어](https://img.shields.io/badge/언어-한국어%20🇰🇷-white)](README.ko.md)
 [![繁體中文](https://img.shields.io/badge/語言-繁體中文%20🇹🇼-white)](README.zh-TW.md)
 
-<i>我建立了一個腳本並創建了約 50,000 個帳戶。如果您需要用於提升的帳戶，請在 Telegram 上訊息我。</i>
+<img alt="last-commit" src="https://img.shields.io/github/last-commit/crc137/PixAI-Account-Creator?style=flat&amp;logo=git&amp;logoColor=white&amp;color=0080ff" style="margin: 0px 2px;">
+<img alt="repo-top-language" src="https://img.shields.io/github/languages/top/crc137/PixAI-Account-Creator?style=flat&amp;color=0080ff" style="margin: 0px 2px;">
+<img alt="repo-language-count" src="https://img.shields.io/github/languages/count/crc137/PixAI-Account-Creator?style=flat&amp;color=0080ff" style="margin: 0px 2px;">
+<img alt="version" src="https://img.shields.io/badge/version-1.0.0-blue" style="margin: 0px 2px;">
+
+<sub><i>我建立了一個腳本並創建了約 __50,000__ 個帳戶。如果您需要用於提升的帳戶，請在 __Telegram__ 上訊息我。</i></sub>
 </div>
 
 <br />
