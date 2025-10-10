@@ -12,4 +12,9 @@ lfx_crowdfunding: # Replace with a single LFX Crowdfunding project-name e.g., cl
 polar: # Replace with a single Polar username
 buy_me_a_coffee: # Replace with a single Buy Me a Coffee username
 thanks_dev: # Replace with a single thanks.dev username
-custom: # Replace with up to 4 custom sponsorship URLs e.g., ['link1', 'link2']
+custom:
+  - 'https://tonhub.com/transfer/UQCdxFNpC5j-bkMNVd_HB0QQY6AADviQN2mpChp8-hNgI9KT  # TON'
+  - 'https://tonhub.com/transfer/UQCOx0Msk2uoTlv6xljK0EL89dAfSB4zODoAqle7j9LkcmhX  # USDT (TON)'
+  - 'bitcoin:1NMxRH5Mi4bj6r7mkfCk9r72yVVhxUqXBg  # BTC'
+  - 'ethereum:0x4d722270e2aBB5E43d98846179fd694769AA9aE4  # ETH'
+  # Replace with up to 4 custom sponsorship URLs e.g., ['link1', 'link2']
