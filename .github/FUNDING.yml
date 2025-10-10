@@ -2,9 +2,4 @@
 
 github: [crc137]  # GitHub Sponsors username
 
-custom: [
-  "https://tonhub.com/transfer/UQCdxFNpC5j-bkMNVd_HB0QQY6AADviQN2mpChp8-hNgI9KT",  # TON
-  "https://tonhub.com/transfer/UQCOx0Msk2uoTlv6xljK0EL89dAfSB4zODoAqle7j9LkcmhX",  # USDT (TON)
-  "bitcoin:1NMxRH5Mi4bj6r7mkfCk9r72yVVhxUqXBg",  # BTC
-  "ethereum:0x4d722270e2abb5e43d98846179fd694769aa9ae4"  # ETH
-]
+custom: ["https://sponsors.coonlink.com/crc137", coonlink.com]
